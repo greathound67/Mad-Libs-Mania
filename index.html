@@ -1266,7 +1266,7 @@ function recCard(ml, highlight) {
 // ===================== LEADERBOARD =====================
 let activeLbTab = 0;
 
-async async function registerOnLeaderboard(user) {
+async function registerOnLeaderboard(user) {
   if (!user || !user.email) return;
   const key = 'lb_og:' + user.email;
   try {
@@ -1289,7 +1289,7 @@ async async function registerOnLeaderboard(user) {
   } catch(e) { console.log('LB register error:', e); }
 }
 
-async async function updatePlayedLeaderboard(count) {
+async function updatePlayedLeaderboard(count) {
   if (!currentUser) return;
   try {
     await window.storage.set('lb_played:' + currentUser.email, JSON.stringify({
