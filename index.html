@@ -194,13 +194,15 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .profile-header { background:var(--ink); color:#fff; padding:28px; display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
 .profile-avatar { width:72px; height:72px; border-radius:50%; border:3px solid var(--accent3); background:#333; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:2rem; overflow:hidden; }
 .profile-avatar img { width:100%; height:100%; object-fit:cover; }
-.avatar-upload-wrap { position:relative; cursor:pointer; flex-shrink:0; }
-.avatar-upload-wrap:hover .avatar-edit-overlay { opacity:1; }
+.avatar-pick-wrap { position:relative; cursor:pointer; flex-shrink:0; }
+.avatar-pick-wrap:hover .avatar-edit-overlay { opacity:1; }
 .avatar-edit-overlay { position:absolute; inset:0; border-radius:50%; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .2s; color:#fff; font-size:.75rem; font-weight:800; flex-direction:column; gap:2px; }
 .avatar-edit-overlay span { font-size:1.3rem; }
-.avatar-upload-input { display:none; }
-.avatar-uploading { animation:pulse 1s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+/* Avatar picker modal */
+.avatar-picker-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin:18px 0; }
+.avatar-option { width:100%; aspect-ratio:1; border-radius:50%; border:3px solid transparent; cursor:pointer; font-size:2.2rem; display:flex; align-items:center; justify-content:center; background:var(--bg); transition:all .15s; }
+.avatar-option:hover { border-color:var(--primary); transform:scale(1.1); }
+.avatar-option.selected { border-color:var(--primary); box-shadow:0 0 0 3px rgba(230,57,70,.2); transform:scale(1.1); }
 .profile-info h2 { font-family:'Boogaloo',cursive; font-size:2rem; }
 .profile-info .pid { font-size:.82rem; color:rgba(255,255,255,.6); font-weight:700; margin-top:2px; }
 .profile-info .joined { font-size:.82rem; color:rgba(255,255,255,.5); margin-top:2px; }
@@ -415,6 +417,18 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     <div id="profileContent"></div>
   </div>
 
+
+<!-- AVATAR PICKER MODAL -->
+<div class="modal-overlay hidden" id="avatarPickerModal" onclick="avatarPickerBgClick(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeAvatarPicker()">✕</button>
+    <div style="font-size:2.5rem;margin-bottom:6px">✏️</div>
+    <h2>Pick Your Avatar</h2>
+    <p>Choose an emoji to represent you on the leaderboard and your profile!</p>
+    <div class="avatar-picker-grid" id="avatarPickerGrid"></div>
+    <button class="btn btn-primary" style="width:100%" onclick="saveAvatarChoice()">Save Avatar</button>
+  </div>
+</div>
 </div><!-- end #main -->
 
 <div class="toast" id="toast"></div>
@@ -871,7 +885,15 @@ function updateAuthUI() {
   const nickname = currentProfile?.nickname || currentUser?.name?.split(' ')[0] || '';
   if (currentUser) {
     prompt.classList.add('hidden'); chip.classList.remove('hidden');
-    document.getElementById('userAvatar').src = currentUser.avatar || '';
+    const av = currentUser.avatar || '';
+    const chipImg = document.getElementById('userAvatar');
+    if (av.length <= 4 && av.match(/\p{Emoji}/u)) {
+      chipImg.style.display = 'none';
+      chipImg.parentElement.insertBefore(Object.assign(document.createElement('span'), {textContent: av, style: 'font-size:1.5rem;line-height:1'}), chipImg);
+    } else {
+      chipImg.style.display = '';
+      chipImg.src = av;
+    }
     document.getElementById('userName').textContent = nickname;
     document.getElementById('headerSub').textContent = '120 hilarious stories • Ratings • Recommendations';
   } else {
@@ -1215,15 +1237,14 @@ async function viewProfileData(profile, backScreen){
     <div class="profile-card">
       <div class="profile-header">
         ${isOwn ? `
-        <div class="avatar-upload-wrap" onclick="document.getElementById('avatarFileInput').click()" title="Click to change profile picture">
+        <div class="avatar-pick-wrap" onclick="openAvatarPicker()" title="Click to change avatar">
           <div class="profile-avatar" id="profileAvatarImg">
-            ${profile.avatar ? `<img src="${escHtml(profile.avatar)}" alt="" onerror="this.parentElement.textContent='👤'">` : '👤'}
+            ${profile.avatar || '🎭'}
           </div>
-          <div class="avatar-edit-overlay"><span>📷</span>Change</div>
-          <input type="file" id="avatarFileInput" class="avatar-upload-input" accept="image/*" onchange="uploadAvatar(event)">
+          <div class="avatar-edit-overlay"><span>✏️</span>Change</div>
         </div>` : `
         <div class="profile-avatar">
-          ${profile.avatar ? `<img src="${escHtml(profile.avatar)}" alt="" onerror="this.parentElement.textContent='👤'">` : '👤'}
+          ${profile.avatar || '🎭'}
         </div>`}
         <div class="profile-info">
           <h2>${escHtml(profile.nickname||'Anonymous')}</h2>
@@ -1274,54 +1295,65 @@ async function viewProfileData(profile, backScreen){
 
 
 // ===================== AVATAR UPLOAD =====================
-async function uploadAvatar(event) {
-  const file = event.target.files[0];
-  if (!file || !currentUser) return;
-  if (file.size > 2 * 1024 * 1024) { toast('Image must be under 2MB!'); return; }
+// ===================== AVATAR PICKER =====================
+const AVATARS = [
+  '🎭','🐱','🐶','🦊','🐸','🐼','🐨','🐯','🦁','🐮',
+  '🐷','🐙','🦄','🐲','🦋','🐢','🦖','🦕','🐳','🦈',
+  '🌈','⭐','🔥','🌙','❄️','🌺','🍕','🍩','🎮','🚀',
+  '🏆','💎','🎸','🎨','📚','🧙','🧜','🦸','🧟','🤖',
+];
+let selectedAvatar = null;
 
-  const avatarEl = document.getElementById('profileAvatarImg');
-  if (avatarEl) avatarEl.classList.add('avatar-uploading');
-  toast('Uploading... ⏳');
+function openAvatarPicker() {
+  selectedAvatar = currentProfile?.avatar || null;
+  const grid = document.getElementById('avatarPickerGrid');
+  grid.innerHTML = AVATARS.map(a =>
+    `<div class="avatar-option${a === selectedAvatar ? ' selected' : ''}" onclick="selectAvatar('${a}')">${a}</div>`
+  ).join('');
+  document.getElementById('avatarPickerModal').classList.remove('hidden');
+}
 
+function closeAvatarPicker() {
+  document.getElementById('avatarPickerModal').classList.add('hidden');
+}
+
+function avatarPickerBgClick(e) {
+  if (e.target === document.getElementById('avatarPickerModal')) closeAvatarPicker();
+}
+
+function selectAvatar(emoji) {
+  selectedAvatar = emoji;
+  document.querySelectorAll('.avatar-option').forEach(el => {
+    el.classList.toggle('selected', el.textContent === emoji);
+  });
+}
+
+async function saveAvatarChoice() {
+  if (!selectedAvatar || !currentUser) return;
   try {
-    // Upload to Supabase Storage
-    const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
-    const path = currentUser.id + '.' + ext;
-    const { error: uploadError } = await sb.storage
-      .from('Avatars')
-      .upload(path, file, { upsert: true, contentType: file.type });
+    await sb.from('profiles').update({ avatar: selectedAvatar }).eq('email', currentUser.email);
+    await sb.from('leaderboard_og').update({ avatar: selectedAvatar }).eq('email', currentUser.email);
+    await sb.from('leaderboard_played').update({ avatar: selectedAvatar }).eq('email', currentUser.email);
 
-    if (uploadError) throw uploadError;
+    currentUser.avatar = selectedAvatar;
+    currentProfile.avatar = selectedAvatar;
 
-    // Get public URL
-    const { data: urlData } = sb.storage.from('Avatars').getPublicUrl(path);
-    const publicUrl = urlData.publicUrl + '?t=' + Date.now(); // cache bust
+    // Update profile page avatar display
+    const avatarEl = document.getElementById('profileAvatarImg');
+    if (avatarEl) avatarEl.textContent = selectedAvatar;
 
-    // Update profiles table
-    await sb.from('profiles').update({ avatar: publicUrl }).eq('email', currentUser.email);
+    // Update auth bar — emoji instead of image
+    const chipImg = document.getElementById('userAvatar');
+    chipImg.style.display = 'none';
+    chipImg.parentElement.querySelector('.user-name').previousSibling?.remove?.();
+    // Just re-render the chip
+    updateAuthUI();
 
-    // Update leaderboard tables
-    await sb.from('leaderboard_og').update({ avatar: publicUrl }).eq('email', currentUser.email);
-    await sb.from('leaderboard_played').update({ avatar: publicUrl }).eq('email', currentUser.email);
-
-    // Update local currentUser and profile
-    currentUser.avatar = publicUrl;
-    currentProfile.avatar = publicUrl;
-
-    // Update auth bar avatar
-    document.getElementById('userAvatar').src = publicUrl;
-
-    // Update profile page avatar
-    if (avatarEl) {
-      avatarEl.innerHTML = `<img src="${publicUrl}" alt="">`;
-      avatarEl.classList.remove('avatar-uploading');
-    }
-
-    toast('✅ Profile picture updated!');
+    closeAvatarPicker();
+    toast('✅ Avatar updated!');
   } catch(e) {
-    console.error('Avatar upload error:', e);
-    if (avatarEl) avatarEl.classList.remove('avatar-uploading');
-    toast('Upload failed. Make sure image is under 2MB.');
+    console.error('Avatar save error:', e);
+    toast('Could not save. Please try again.');
   }
 }
 
