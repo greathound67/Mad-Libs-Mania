@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🎭 Mad Libs Mania!</title>
 <link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --bg: #fdf6e3;
@@ -31,44 +31,25 @@ body::before {
 .confetti-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
 .confetti-dot { position: absolute; border-radius: 50%; opacity: 0.15; animation: float linear infinite; }
 @keyframes float { 0%{transform:translateY(100vh) rotate(0deg);opacity:0} 10%{opacity:.15} 90%{opacity:.15} 100%{transform:translateY(-100px) rotate(720deg);opacity:0} }
+.hidden { display: none !important; }
 
-/* ===== HEADER ===== */
 header { position: relative; z-index: 10; text-align: center; padding: 28px 20px 16px; }
 header h1 { font-family:'Boogaloo',cursive; font-size:clamp(2.8rem,8vw,5.5rem); color:var(--primary); text-shadow:4px 4px 0 var(--accent),7px 7px 0 rgba(230,57,70,.2); letter-spacing:2px; line-height:1; }
 header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6px; }
 
-/* ===== AUTH BAR ===== */
-.auth-bar {
-  position: relative; z-index: 10;
-  display: flex; justify-content: flex-end; align-items: center; gap: 10px;
-  padding: 0 24px 10px; max-width: 900px; margin: 0 auto;
-}
-.user-chip {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--card); border: 2px solid var(--ink);
-  border-radius: 30px; padding: 6px 14px 6px 8px;
-  font-weight: 700; font-size: 0.88rem; box-shadow: 2px 2px 0 var(--ink);
-}
+.auth-bar { position:relative; z-index:10; display:flex; justify-content:flex-end; align-items:center; gap:10px; padding:0 24px 10px; max-width:900px; margin:0 auto; }
+.user-chip { display:flex; align-items:center; gap:8px; background:var(--card); border:2px solid var(--ink); border-radius:30px; padding:6px 14px 6px 8px; font-weight:700; font-size:.88rem; box-shadow:2px 2px 0 var(--ink); }
 .user-chip img { width:28px; height:28px; border-radius:50%; border:2px solid var(--accent); }
-.user-chip .user-name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.btn-signout { background: none; border: 2px solid var(--locked); border-radius: 20px; padding: 4px 10px; font-size: 0.78rem; font-weight: 700; color: #888; cursor: pointer; transition: all .15s; }
-.btn-signout:hover { border-color: var(--primary); color: var(--primary); }
-.sign-in-prompt {
-  display: flex; align-items: center; gap: 10px;
-  background: linear-gradient(135deg, #fff9f0, #fff);
-  border: 2px solid var(--accent); border-radius: 30px;
-  padding: 8px 16px; font-size: 0.88rem; font-weight: 700; color: var(--ink);
-  box-shadow: 2px 2px 0 var(--accent);
-}
-.sign-in-prompt .lock-icon { font-size: 1.1rem; }
+.user-chip .user-name { max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.btn-signout { background:none; border:2px solid var(--locked); border-radius:20px; padding:4px 10px; font-size:.78rem; font-weight:700; color:#888; cursor:pointer; transition:all .15s; }
+.btn-signout:hover { border-color:var(--primary); color:var(--primary); }
+.sign-in-prompt { display:flex; align-items:center; gap:10px; background:linear-gradient(135deg,#fff9f0,#fff); border:2px solid var(--accent); border-radius:30px; padding:8px 16px; font-size:.88rem; font-weight:700; color:var(--ink); box-shadow:2px 2px 0 var(--accent); flex-wrap:wrap; }
 
-/* ===== MAIN ===== */
-#main { position: relative; z-index: 5; max-width: 880px; margin: 0 auto; padding: 0 20px 60px; }
-.screen { display: none; animation: fadeIn .35s ease; }
-.screen.active { display: block; }
+#main { position:relative; z-index:5; max-width:880px; margin:0 auto; padding:0 20px 60px; }
+.screen { display:none; animation:fadeIn .35s ease; }
+.screen.active { display:block; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
-/* ===== BUTTONS ===== */
 .btn { display:inline-block; padding:13px 32px; border-radius:50px; font-family:'Boogaloo',cursive; font-size:1.35rem; letter-spacing:1px; cursor:pointer; border:3px solid var(--ink); transition:all .15s; user-select:none; }
 .btn:active { transform:translateY(2px); }
 .btn-primary { background:var(--primary); color:#fff; box-shadow:4px 4px 0 var(--ink); }
@@ -81,38 +62,27 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .btn-green:hover { box-shadow:6px 6px 0 var(--ink); transform:translateY(-2px); }
 .btn-outline { background:transparent; color:var(--ink); box-shadow:3px 3px 0 var(--ink); }
 .btn-outline:hover { box-shadow:5px 5px 0 var(--ink); transform:translateY(-2px); }
-.btn-gold { background: linear-gradient(135deg, #f4c430, #e9a800); color:var(--ink); box-shadow:4px 4px 0 var(--ink); border-color:var(--ink); }
+.btn-gold { background:linear-gradient(135deg,#f4c430,#e9a800); color:var(--ink); box-shadow:4px 4px 0 var(--ink); border-color:var(--ink); }
 .btn-gold:hover { box-shadow:6px 6px 0 var(--ink); transform:translateY(-2px); }
 
-/* ===== HOME ===== */
 .home-card { background:var(--card); border-radius:24px; padding:36px; box-shadow:0 8px 30px var(--shadow); border:3px solid var(--ink); text-align:center; }
 .home-card h2 { font-family:'Boogaloo',cursive; font-size:2.2rem; color:var(--ink); margin-bottom:10px; }
 .home-card p { color:#555; line-height:1.6; margin-bottom:20px; font-size:1.05rem; }
 .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:14px; margin:22px 0; }
 .stat-box { background:var(--bg); border:2px solid var(--ink); border-radius:16px; padding:14px 10px; text-align:center; }
 .stat-box .num { font-family:'Boogaloo',cursive; font-size:2.2rem; color:var(--primary); line-height:1; }
-.stat-box .label { font-size:0.72rem; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:1px; margin-top:3px; }
+.stat-box .label { font-size:.72rem; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:1px; margin-top:3px; }
 .home-btns { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:18px; }
 .fav-themes { margin:16px 0; }
 .fav-themes h3 { font-size:.95rem; font-weight:800; color:var(--secondary); margin-bottom:8px; }
 .fav-themes-list { display:flex; gap:7px; flex-wrap:wrap; justify-content:center; }
 
-/* ===== UPSELL BANNER ===== */
-.upsell-banner {
-  background: linear-gradient(135deg, #fff8e7, #fff3d4);
-  border: 2.5px solid var(--accent);
-  border-radius: 18px;
-  padding: 18px 22px;
-  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-  margin: 18px 0; text-align: left;
-  box-shadow: 3px 3px 0 var(--accent);
-}
-.upsell-banner .upsell-icon { font-size: 2.2rem; flex-shrink: 0; }
+.upsell-banner { background:linear-gradient(135deg,#fff8e7,#fff3d4); border:2.5px solid var(--accent); border-radius:18px; padding:18px 22px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin:18px 0; box-shadow:3px 3px 0 var(--accent); }
+.upsell-banner .upsell-icon { font-size:2.2rem; flex-shrink:0; }
 .upsell-banner .upsell-text h3 { font-family:'Boogaloo',cursive; font-size:1.3rem; color:var(--ink); margin-bottom:3px; }
 .upsell-banner .upsell-text p { font-size:.88rem; color:#666; line-height:1.4; }
 .upsell-banner .upsell-actions { margin-left:auto; }
 
-/* ===== THEME PILLS ===== */
 .theme-pill { padding:4px 13px; border-radius:20px; font-size:.78rem; font-weight:700; background:var(--card); border:2px solid currentColor; display:inline-block; }
 .theme-pill.Adventure{color:var(--primary);border-color:var(--primary)}
 .theme-pill.Science{color:var(--secondary);border-color:var(--secondary)}
@@ -135,7 +105,6 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .theme-pill.Nature{color:#2a9d8f;border-color:#2a9d8f}
 .theme-pill.Mystery{color:#4a4e69;border-color:#4a4e69}
 
-/* ===== FILL SCREEN ===== */
 .fill-header { background:var(--card); border-radius:20px 20px 0 0; border:3px solid var(--ink); border-bottom:none; padding:18px 26px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
 .fill-header h2 { font-family:'Boogaloo',cursive; font-size:1.7rem; }
 .fill-body { background:var(--card); border:3px solid var(--ink); border-top:none; border-radius:0 0 20px 20px; padding:26px; box-shadow:0 8px 30px var(--shadow); }
@@ -148,7 +117,6 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .progress-bar-wrap { background:#eee; border-radius:10px; height:8px; margin-bottom:18px; overflow:hidden; }
 .progress-bar { height:100%; background:linear-gradient(90deg,var(--primary),var(--accent)); border-radius:10px; transition:width .3s; }
 
-/* ===== STORY ===== */
 .story-card { background:var(--card); border:3px solid var(--ink); border-radius:20px; overflow:hidden; box-shadow:0 8px 30px var(--shadow); }
 .story-header { background:var(--ink); color:#fff; padding:18px 26px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
 .story-header h2 { font-family:'Boogaloo',cursive; font-size:1.7rem; }
@@ -159,7 +127,6 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .story-body .highlight:nth-child(5n) { background:#fce4ec; transform:rotate(-.5deg); }
 .story-actions { text-align:center; margin-top:22px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
 
-/* ===== RATING ===== */
 .rating-card { background:var(--card); border:3px solid var(--ink); border-radius:20px; padding:36px 26px; text-align:center; box-shadow:0 8px 30px var(--shadow); }
 .rating-card h2 { font-family:'Boogaloo',cursive; font-size:2rem; margin-bottom:8px; }
 .rating-card p { color:#666; margin-bottom:20px; }
@@ -169,7 +136,6 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .rating-label { font-size:1.4rem; font-weight:800; color:var(--primary); min-height:34px; margin:8px 0; font-family:'Boogaloo',cursive; }
 .rating-actions { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:18px; }
 
-/* ===== HISTORY ===== */
 .history-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:14px; }
 .history-card { background:var(--card); border:2px solid #ddd; border-radius:16px; padding:16px; }
 .history-card h3 { font-size:.95rem; font-weight:800; margin-bottom:5px; }
@@ -177,7 +143,6 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .history-card .h-themes .theme-pill { font-size:.68rem; padding:2px 7px; }
 .history-card .h-rating { font-family:'Boogaloo',cursive; font-size:1.15rem; color:var(--accent); }
 
-/* ===== PREFERENCES ===== */
 .prefs-card { background:var(--card); border:3px solid var(--ink); border-radius:20px; padding:28px; box-shadow:0 8px 30px var(--shadow); }
 .prefs-card h2 { font-family:'Boogaloo',cursive; font-size:1.9rem; margin-bottom:18px; }
 .theme-row { display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid #f0f0f0; flex-wrap:wrap; }
@@ -189,7 +154,6 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .play-theme-btn { background:var(--primary); color:#fff; border:2px solid var(--ink); border-radius:20px; padding:4px 13px; font-family:'Boogaloo',cursive; font-size:.92rem; cursor:pointer; white-space:nowrap; transition:all .15s; box-shadow:2px 2px 0 var(--ink); }
 .play-theme-btn:hover { box-shadow:3px 3px 0 var(--ink); transform:translateY(-1px); }
 
-/* ===== LIBRARY ===== */
 .library-controls { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
 .library-search { flex:1; min-width:180px; padding:10px 16px; border:2px solid var(--ink); border-radius:30px; font-family:'Nunito',sans-serif; font-size:1rem; font-weight:700; background:var(--card); outline:none; }
 .library-search:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(230,57,70,.15); }
@@ -207,24 +171,15 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .lib-card .lc-rating { color:var(--accent); font-weight:800; }
 .played-badge { position:absolute; top:9px; right:9px; background:var(--accent2); color:#fff; border-radius:10px; font-size:.62rem; font-weight:800; padding:2px 7px; }
 .lib-count { font-size:.88rem; color:#888; font-weight:700; margin-bottom:12px; }
-/* LOCKED cards */
 .lib-card.locked { background:var(--locked-bg); border-color:#d0d5dd; cursor:default; }
 .lib-card.locked:hover { transform:none; box-shadow:none; border-color:#d0d5dd; }
 .lib-card.locked h3 { color:#8a9ab0; }
-.lib-card.locked .lc-themes .theme-pill { opacity:.5; }
 .locked-overlay { position:absolute; inset:0; border-radius:14px; background:rgba(240,242,245,.7); display:flex; align-items:center; justify-content:center; gap:8px; font-weight:800; color:#6b7a8d; font-size:.88rem; pointer-events:none; }
-.lock-badge { font-size:1.3rem; }
-.lib-locked-banner {
-  background: linear-gradient(135deg, #f0f7ff, #e8f4fd);
-  border: 2px solid #8ecae6; border-radius: 16px; padding: 18px 20px;
-  margin: 14px 0; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
-}
+.lib-locked-banner { background:linear-gradient(135deg,#f0f7ff,#e8f4fd); border:2px solid #8ecae6; border-radius:16px; padding:18px 20px; margin:14px 0; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
 .lib-locked-banner p { font-size:.9rem; color:#2b5f7a; font-weight:700; flex:1; }
-/* SECTION HEADERS */
 .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:10px; }
 .section-header h2 { font-family:'Boogaloo',cursive; font-size:1.9rem; }
 
-/* ===== RECOMMENDED ===== */
 .rec-section h3 { font-family:'Boogaloo',cursive; font-size:1.4rem; margin-bottom:12px; }
 .rec-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; margin-bottom:26px; }
 .rec-card { background:var(--card); border:2px solid #e0e0e0; border-radius:16px; padding:15px; cursor:pointer; transition:all .2s; border-left:4px solid var(--primary); }
@@ -235,47 +190,52 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .rec-why { font-size:.73rem; color:var(--accent2); font-weight:700; margin-top:3px; }
 .no-recs { background:var(--card); border:2px dashed #ddd; border-radius:16px; padding:36px; text-align:center; color:#aaa; }
 
-/* ===== LOGIN MODAL ===== */
-.modal-overlay {
-  position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:100;
-  display:flex; align-items:center; justify-content:center; padding:20px;
-  animation: fadeIn .2s ease;
-}
-.modal-overlay.hidden { display:none; }
-.modal-box {
-  background:var(--card); border:3px solid var(--ink); border-radius:24px;
-  padding:40px 36px; max-width:420px; width:100%; text-align:center;
-  box-shadow:8px 8px 0 var(--ink); animation:popIn .3s ease;
-}
+/* LEADERBOARD */
+.lb-tabs { display:flex; gap:8px; margin-bottom:22px; flex-wrap:wrap; }
+.lb-tab { padding:9px 22px; border-radius:30px; font-family:'Boogaloo',cursive; font-size:1.1rem; cursor:pointer; border:2.5px solid var(--ink); background:var(--card); color:var(--ink); transition:all .15s; box-shadow:2px 2px 0 var(--ink); }
+.lb-tab.active { background:var(--ink); color:#fff; box-shadow:none; }
+.lb-tab:hover:not(.active) { box-shadow:3px 3px 0 var(--ink); transform:translateY(-1px); }
+.lb-table { background:var(--card); border:3px solid var(--ink); border-radius:20px; overflow:hidden; box-shadow:0 6px 24px var(--shadow); }
+.lb-table-header { display:grid; grid-template-columns:52px 1fr 110px; background:var(--ink); color:#fff; padding:13px 20px; font-size:.78rem; font-weight:800; text-transform:uppercase; letter-spacing:.8px; }
+.lb-row { display:grid; grid-template-columns:52px 1fr 110px; padding:13px 20px; align-items:center; border-bottom:1px solid #f0f0f0; transition:background .15s; }
+.lb-row:last-child { border-bottom:none; }
+.lb-row:hover { background:#fafafa; }
+.lb-row.is-me { background:linear-gradient(135deg,#fff8e1,#fffde7); border-left:4px solid var(--accent3); }
+.lb-rank { font-family:'Boogaloo',cursive; font-size:1.5rem; color:#ccc; text-align:center; }
+.lb-rank.top1{color:#FFD700} .lb-rank.top2{color:#C0C0C0} .lb-rank.top3{color:#CD7F32}
+.lb-user { display:flex; align-items:center; gap:10px; min-width:0; }
+.lb-avatar { width:36px; height:36px; border-radius:50%; border:2px solid #eee; flex-shrink:0; background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:1.1rem; overflow:hidden; }
+.lb-avatar img { width:100%; height:100%; object-fit:cover; }
+.lb-name { font-weight:800; font-size:.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lb-you-tag { font-size:.65rem; font-weight:800; background:var(--accent3); color:var(--ink); border-radius:8px; padding:1px 6px; margin-left:5px; flex-shrink:0; }
+.lb-og-badge { font-size:.65rem; font-weight:800; background:linear-gradient(135deg,#FFD700,#FFA500); color:#fff; border-radius:8px; padding:1px 7px; margin-left:4px; flex-shrink:0; }
+.lb-score { font-family:'Boogaloo',cursive; font-size:1.3rem; color:var(--secondary); text-align:right; }
+.lb-score span { font-size:.72rem; font-weight:700; color:#aaa; display:block; font-family:'Nunito',sans-serif; }
+.lb-empty { text-align:center; padding:48px 20px; color:#bbb; font-size:1rem; }
+.lb-loading { text-align:center; padding:40px; color:#aaa; font-size:1.1rem; }
+.lb-my-rank { background:linear-gradient(135deg,#fff8e1,#fffde7); border:2px solid var(--accent3); border-radius:14px; padding:14px 20px; margin-bottom:16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.lb-my-rank .my-rank-num { font-family:'Boogaloo',cursive; font-size:2.2rem; color:var(--primary); line-height:1; }
+.lb-section-desc { font-size:.88rem; color:#888; font-weight:700; margin-bottom:16px; line-height:1.5; }
+
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:100; display:flex; align-items:center; justify-content:center; padding:20px; animation:fadeIn .2s ease; }
+.modal-overlay.hidden { display:none !important; }
+.modal-box { background:var(--card); border:3px solid var(--ink); border-radius:24px; padding:40px 36px; max-width:420px; width:100%; text-align:center; box-shadow:8px 8px 0 var(--ink); animation:popIn .3s ease; position:relative; }
 @keyframes popIn { from{transform:scale(.88);opacity:0} to{transform:scale(1);opacity:1} }
 .modal-box h2 { font-family:'Boogaloo',cursive; font-size:2rem; margin-bottom:10px; }
 .modal-box p { color:#666; font-size:.95rem; line-height:1.6; margin-bottom:24px; }
-.modal-perks { text-align:left; margin: 0 0 26px; }
+.modal-perks { text-align:left; margin:0 0 26px; }
 .modal-perks li { list-style:none; padding:7px 0; font-weight:700; font-size:.95rem; display:flex; align-items:center; gap:10px; border-bottom:1px solid #f5f5f5; }
 .modal-perks li:last-child { border:none; }
 .modal-perks li .perk-icon { font-size:1.3rem; flex-shrink:0; }
-.google-btn {
-  display:flex; align-items:center; justify-content:center; gap:10px;
-  width:100%; padding:14px 20px;
-  background:#fff; border:2px solid var(--ink); border-radius:50px;
-  font-family:'Nunito',sans-serif; font-size:1.1rem; font-weight:800;
-  cursor:pointer; box-shadow:4px 4px 0 var(--ink); transition:all .15s;
-  color:var(--ink);
-}
+.google-btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:14px 20px; background:#fff; border:2px solid var(--ink); border-radius:50px; font-family:'Nunito',sans-serif; font-size:1.1rem; font-weight:800; cursor:pointer; box-shadow:4px 4px 0 var(--ink); transition:all .15s; color:var(--ink); }
 .google-btn:hover { box-shadow:6px 6px 0 var(--ink); transform:translateY(-2px); }
 .google-btn img { width:22px; height:22px; }
 .modal-close { position:absolute; top:14px; right:18px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:#aaa; }
 .modal-close:hover { color:var(--ink); }
-.modal-box .modal-or { color:#ccc; font-size:.85rem; margin:14px 0; }
-.modal-box .continue-free { font-size:.9rem; color:#999; cursor:pointer; text-decoration:underline; }
-.modal-box .continue-free:hover { color:var(--primary); }
-
-/* ===== MISC ===== */
-.back-btn { margin-bottom:18px; }
-.toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(100px); background:var(--ink); color:#fff; padding:11px 22px; border-radius:30px; font-weight:700; font-size:.95rem; z-index:200; transition:transform .4s; pointer-events:none; white-space:nowrap; }
-.toast.show { transform:translateX(-50%) translateY(0); }
-.badge-free { background: #e8f5e9; color: #2e7d32; border: 1.5px solid #66bb6a; border-radius: 12px; padding: 2px 10px; font-size:.75rem; font-weight:800; }
-.badge-pro { background: linear-gradient(135deg,#fff8e1,#fff3cd); color:#8a6500; border: 1.5px solid var(--accent3); border-radius: 12px; padding: 2px 10px; font-size:.75rem; font-weight:800; }
+.modal-or { color:#ccc; font-size:.85rem; margin:14px 0; }
+.continue-free { font-size:.9rem; color:#999; cursor:pointer; text-decoration:underline; }
+.continue-free:hover { color:var(--primary); }
+.badge-pro { background:linear-gradient(135deg,#fff8e1,#fff3cd); color:#8a6500; border:1.5px solid var(--accent3); border-radius:12px; padding:2px 10px; font-size:.75rem; font-weight:800; }
 
 @media(max-width:500px){
   .fill-header,.fill-body,.story-header,.story-body,.rating-card,.home-card{padding:16px}
@@ -283,36 +243,6 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
   .btn{font-size:1.1rem;padding:11px 22px}
   .modal-box{padding:26px 20px}
 }
-
-  /* ===== LEADERBOARD ===== */
-  .lb-tabs { display:flex; gap:8px; margin-bottom:22px; flex-wrap:wrap; }
-  .lb-tab { padding:9px 22px; border-radius:30px; font-family:'Boogaloo',cursive; font-size:1.1rem; cursor:pointer; border:2.5px solid var(--ink); background:var(--card); color:var(--ink); transition:all .15s; box-shadow:2px 2px 0 var(--ink); }
-  .lb-tab.active { background:var(--ink); color:#fff; box-shadow:none; }
-  .lb-tab:hover:not(.active) { box-shadow:3px 3px 0 var(--ink); transform:translateY(-1px); }
-  .lb-table { background:var(--card); border:3px solid var(--ink); border-radius:20px; overflow:hidden; box-shadow:0 6px 24px var(--shadow); }
-  .lb-table-header { display:grid; grid-template-columns:52px 1fr 110px; background:var(--ink); color:#fff; padding:13px 20px; font-size:.78rem; font-weight:800; text-transform:uppercase; letter-spacing:.8px; }
-  .lb-row { display:grid; grid-template-columns:52px 1fr 110px; padding:13px 20px; align-items:center; border-bottom:1px solid #f0f0f0; transition:background .15s; }
-  .lb-row:last-child { border-bottom:none; }
-  .lb-row:hover { background:#fafafa; }
-  .lb-row.is-me { background:linear-gradient(135deg,#fff8e1,#fffde7); border-left:4px solid var(--accent3); }
-  .lb-rank { font-family:'Boogaloo',cursive; font-size:1.5rem; color:#ccc; text-align:center; }
-  .lb-rank.top1 { color:#FFD700; }
-  .lb-rank.top2 { color:#C0C0C0; }
-  .lb-rank.top3 { color:#CD7F32; }
-  .lb-user { display:flex; align-items:center; gap:10px; min-width:0; }
-  .lb-avatar { width:36px; height:36px; border-radius:50%; border:2px solid #eee; flex-shrink:0; background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:1.1rem; overflow:hidden; }
-  .lb-avatar img { width:100%; height:100%; object-fit:cover; }
-  .lb-name { font-weight:800; font-size:.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .lb-you-tag { font-size:.65rem; font-weight:800; background:var(--accent3); color:var(--ink); border-radius:8px; padding:1px 6px; margin-left:5px; flex-shrink:0; }
-  .lb-og-badge { font-size:.65rem; font-weight:800; background:linear-gradient(135deg,#FFD700,#FFA500); color:#fff; border-radius:8px; padding:1px 7px; margin-left:4px; flex-shrink:0; }
-  .lb-score { font-family:'Boogaloo',cursive; font-size:1.3rem; color:var(--secondary); text-align:right; }
-  .lb-score span { font-size:.72rem; font-weight:700; color:#aaa; display:block; font-family:'Nunito',sans-serif; }
-  .lb-empty { text-align:center; padding:48px 20px; color:#bbb; font-size:1rem; }
-  .lb-loading { text-align:center; padding:40px; color:#aaa; font-size:1.1rem; }
-  .lb-my-rank { background:linear-gradient(135deg,#fff8e1,#fffde7); border:2px solid var(--accent3); border-radius:14px; padding:14px 20px; margin-bottom:16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
-  .lb-my-rank .my-rank-num { font-family:'Boogaloo',cursive; font-size:2.2rem; color:var(--primary); line-height:1; }
-  .lb-my-rank .my-rank-label { font-size:.8rem; color:#888; font-weight:700; }
-  .lb-section-desc { font-size:.88rem; color:#888; font-weight:700; margin-bottom:16px; line-height:1.5; }
 </style>
 </head>
 <body>
@@ -323,11 +253,10 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
   <p id="headerSub">120 hilarious stories • Fill in the blanks • Get silly!</p>
 </header>
 
-<!-- Auth bar -->
 <div class="auth-bar" id="authBar">
   <div class="sign-in-prompt" id="signInPrompt">
-    <span class="lock-icon">🔓</span>
-    <span>Sign in with Google to unlock all 120 stories, ratings & recommendations</span>
+    <span>🔓</span>
+    <span>Sign in to unlock all 120 stories, ratings & recommendations</span>
     <button class="btn btn-gold" style="padding:7px 18px;font-size:1rem" onclick="openLoginModal()">Sign In Free</button>
   </div>
   <div class="user-chip hidden" id="userChip">
@@ -340,14 +269,13 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 
 <div id="main">
 
-  <!-- HOME -->
   <div class="screen active" id="screenHome">
     <div class="home-card">
       <h2>Ready to Get Silly? 🎉</h2>
       <p id="homeDesc">Fill in the blanks, reveal hilarious stories!</p>
       <div class="stats-row" id="statsRow">
         <div class="stat-box"><div class="num" id="statPlayed">0</div><div class="label">Played</div></div>
-        <div class="stat-box" id="statAvgBox"><div class="num" id="statAvgRating">—</div><div class="label">Avg Rating</div></div>
+        <div class="stat-box hidden" id="statAvgBox"><div class="num" id="statAvgRating">—</div><div class="label">Avg Rating</div></div>
         <div class="stat-box"><div class="num" id="statRemaining">50</div><div class="label">Remaining</div></div>
       </div>
       <div class="fav-themes hidden" id="favThemesSection">
@@ -359,7 +287,6 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     </div>
   </div>
 
-  <!-- FILL IN WORDS -->
   <div class="screen" id="screenFill">
     <div class="fill-header">
       <div>
@@ -378,7 +305,6 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     </div>
   </div>
 
-  <!-- STORY -->
   <div class="screen" id="screenStory">
     <div class="story-card">
       <div class="story-header">
@@ -393,7 +319,6 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     </div>
   </div>
 
-  <!-- RATING (PRO only) -->
   <div class="screen" id="screenRating">
     <div class="rating-card">
       <h2>How Funny Was That? 😂</h2>
@@ -407,7 +332,6 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     </div>
   </div>
 
-  <!-- HISTORY -->
   <div class="screen" id="screenHistory">
     <div class="section-header">
       <button class="btn btn-outline back-btn" onclick="showScreen('screenHome')">← Back</button>
@@ -416,9 +340,8 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     <div class="history-grid" id="historyGrid"></div>
   </div>
 
-  <!-- PREFERENCES (PRO only) -->
   <div class="screen" id="screenPrefs">
-    <button class="btn btn-outline back-btn" onclick="showScreen('screenHome')">← Back</button>
+    <button class="btn btn-outline back-btn" onclick="showScreen('screenHome')" style="margin-bottom:18px">← Back</button>
     <div class="prefs-card">
       <h2>📊 Theme Preferences</h2>
       <p style="color:#777;margin-bottom:18px;font-size:.93rem">Based on your ratings. Click ▶ Play to dive into a theme!</p>
@@ -427,7 +350,6 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     </div>
   </div>
 
-  <!-- LIBRARY -->
   <div class="screen" id="screenLibrary">
     <div class="section-header">
       <button class="btn btn-outline back-btn" onclick="showScreen('screenHome')">← Back</button>
@@ -442,7 +364,6 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     <div class="library-grid" id="libraryGrid"></div>
   </div>
 
-  <!-- RECOMMENDED (PRO only) -->
   <div class="screen" id="screenRecommended">
     <div class="section-header">
       <button class="btn btn-outline back-btn" onclick="showScreen('screenHome')">← Back</button>
@@ -451,8 +372,6 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     <div id="recContent"></div>
   </div>
 
-
-  <!-- LEADERBOARD -->
   <div class="screen" id="screenLeaderboard">
     <div class="section-header">
       <button class="btn btn-outline back-btn" onclick="showScreen('screenHome')">← Back</button>
@@ -465,25 +384,25 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     </div>
     <div id="lbContent"></div>
   </div>
-</div><!-- end #main -->
 
-<div class="toast" id="toast"></div>
+</div>
 
-<!-- LOGIN MODAL -->
+<div class="toast" id="toast" style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--ink);color:#fff;padding:11px 22px;border-radius:30px;font-weight:700;font-size:.95rem;z-index:200;transition:transform .4s;pointer-events:none;white-space:nowrap;"></div>
+
 <div class="modal-overlay hidden" id="loginModal" onclick="modalBgClick(event)">
-  <div class="modal-box" style="position:relative">
+  <div class="modal-box">
     <button class="modal-close" onclick="closeLoginModal()">✕</button>
     <div style="font-size:3rem;margin-bottom:8px">🔓</div>
     <h2>Unlock the Full Experience</h2>
     <p>Sign in free with Google to access all features:</p>
     <ul class="modal-perks">
-      <li><span class="perk-icon">📖</span> <span>All <strong>120 mad libs</strong> (70 more stories!)</span></li>
-      <li><span class="perk-icon">⭐</span> <span><strong>Rate</strong> stories and track your faves</span></li>
-      <li><span class="perk-icon">📊</span> <span><strong>Theme preferences</strong> based on your ratings</span></li>
-      <li><span class="perk-icon">✨</span> <span><strong>Personalized recommendations</strong> just for you</span></li>
-      <li><span class="perk-icon">☁️</span> <span>Progress saved to your account</span></li>
+      <li><span class="perk-icon">📖</span><span>All <strong>120 mad libs</strong> (70 more stories!)</span></li>
+      <li><span class="perk-icon">⭐</span><span><strong>Rate</strong> stories and track your faves</span></li>
+      <li><span class="perk-icon">📊</span><span><strong>Theme preferences</strong> based on your ratings</span></li>
+      <li><span class="perk-icon">✨</span><span><strong>Personalized recommendations</strong> just for you</span></li>
+      <li><span class="perk-icon">🏆</span><span>Appear on the <strong>Leaderboard</strong></span></li>
     </ul>
-    <button class="google-btn" onclick="triggerGoogleSignIn()">
+    <button class="google-btn" onclick="signInWithGoogle()">
       <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google">
       Continue with Google
     </button>
@@ -697,60 +616,97 @@ const MAD_LIBS = [
   {id:119,title:"The Last Wilderness Escape",themes:["Nature","Travel","Animals"],template:"Travel writer {name} set out to find the last {adjective} truly wild place on Earth, untouched by {technology}. After {number} days in {adjective2} wilderness, {name} found it: a {adjective3} valley in {country} where {number2} {animal_plural} lived alongside {number3} {adjective4} {animal_plural2}. The only {adjective5} human structure was a {color} sign: 'Welcome to {valley_name}. Please {verb}. Leave only {noun_plural}. Take only {adjective6} memories and possibly a few {noun_plural2}.'",words:[{label:"Writer's Name",ph:"e.g. Rowan",key:"name"},{label:"Adjective",ph:"e.g. genuinely",key:"adjective"},{label:"Technology",ph:"e.g. wifi",key:"technology"},{label:"Number",ph:"e.g. 60",key:"number"},{label:"Adjective",ph:"e.g. uncharted",key:"adjective2"},{label:"Adjective",ph:"e.g. hidden",key:"adjective3"},{label:"Country",ph:"e.g. Bhutan",key:"country"},{label:"Number",ph:"e.g. 400",key:"number2"},{label:"Animal (plural)",ph:"e.g. red pandas",key:"animal_plural"},{label:"Number",ph:"e.g. 200",key:"number3"},{label:"Adjective",ph:"e.g. philosophical",key:"adjective4"},{label:"Animal (plural)",ph:"e.g. snow leopards",key:"animal_plural2"},{label:"Adjective",ph:"e.g. man-made",key:"adjective5"},{label:"Color",ph:"e.g. hand-painted",key:"color"},{label:"Valley Name",ph:"e.g. Valley of Actual Peace",key:"valley_name"},{label:"Verb",ph:"e.g. breathe",key:"verb"},{label:"Noun (plural)",ph:"e.g. footprints",key:"noun_plural"},{label:"Adjective",ph:"e.g. life-changing",key:"adjective6"},{label:"Noun (plural)",ph:"e.g. pine cones",key:"noun_plural2"}]}
 ];
 
-// ===================== CONFIG =====================
-const FREE_LIMIT = 50;   // IDs 0–49 are free
+// ===================== SUPABASE =====================
+const SUPABASE_URL = 'https://jmqphaoouagnmiwpuabr.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptcXBoYW9vdWFnbm1pd3B1YWJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4ODk5MTksImV4cCI6MjA4NzQ2NTkxOX0.0lSeox5X2uaycyKD77HahEmgLGEv1AEH2y7CGvGS4AQ';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+const FREE_LIMIT = 50;
 const TOTAL = 120;
 
-// ===================== AUTH STATE =====================
-let currentUser = null; // { name, email, avatar, token }
+// ===================== AUTH =====================
+let currentUser = null;
 
-// Try restore from localStorage (simulated — real auth would use Google's token)
-function loadUser() {
-  const stored = localStorage.getItem('ml_user');
-  if (stored) {
-    try { currentUser = JSON.parse(stored); } catch(e) { currentUser = null; }
+async function initAuth() {
+  // Check for existing session
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) await handleSession(session);
+
+  // Handle OAuth redirect (hash contains access_token)
+  if (window.location.hash.includes('access_token')) {
+    const { data: { session: redirectSession } } = await sb.auth.getSession();
+    if (redirectSession) {
+      await handleSession(redirectSession);
+      // Clean up URL
+      history.replaceState(null, '', window.location.pathname);
+    }
   }
+
+  // Listen for auth changes
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      await handleSession(session);
+    } else if (event === 'SIGNED_OUT') {
+      currentUser = null;
+      updateAuthUI();
+      updateHome();
+    }
+  });
 }
 
-function saveUser(u) {
-  currentUser = u;
-  localStorage.setItem('ml_user', JSON.stringify(u));
-  registerOnLeaderboard(u);
+async function handleSession(session) {
+  const u = session.user;
+  currentUser = {
+    id: u.id,
+    email: u.email,
+    name: u.user_metadata?.full_name || u.user_metadata?.name || u.email,
+    avatar: u.user_metadata?.avatar_url || u.user_metadata?.picture || ''
+  };
+  updateAuthUI();
+  updateHome();
+  await registerOnLeaderboard();
+  const ps = loadProState();
+  if (ps.played.length > 0) await updatePlayedLeaderboard(ps.played.length);
+  closeLoginModal();
+  toast('🎉 Welcome, ' + currentUser.name.split(' ')[0] + '! All 120 mad libs unlocked!');
 }
 
-function signOut() {
+async function signInWithGoogle() {
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + window.location.pathname
+    }
+  });
+  if (error) { console.error(error); toast('Sign-in failed. Please try again.'); }
+}
+
+async function signOut() {
+  await sb.auth.signOut();
   currentUser = null;
-  localStorage.removeItem('ml_user');
-  // Keep free state but clear pro state
   updateAuthUI();
   updateHome();
   toast('Signed out. Free access restored.');
   showScreen('screenHome');
 }
 
-// ===================== GAME STATE =====================
-// Free state: just played IDs (no ratings/prefs)
-let freeState = JSON.parse(localStorage.getItem('ml_free') || '{"played":[]}');
-// Pro state: played + ratings + themes (keyed by user email)
-function proStateKey() { return currentUser ? 'ml_pro_' + currentUser.email : null; }
-function loadProState() {
-  const key = proStateKey();
-  if (!key) return { played: [], ratings: {}, themeScores: {}, themeCounts: {} };
-  return JSON.parse(localStorage.getItem(key) || '{"played":[],"ratings":{},"themeScores":{},"themeCounts":{}}');
-}
-function saveProState(s) {
-  const key = proStateKey();
-  if (key) localStorage.setItem(key, JSON.stringify(s));
-}
-function saveFreeState() { localStorage.setItem('ml_free', JSON.stringify(freeState)); }
+function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); }
+function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
+function modalBgClick(e) { if (e.target === document.getElementById('loginModal')) closeLoginModal(); }
 
-function getPlayedIds() {
-  if (currentUser) {
-    const ps = loadProState();
-    return ps.played;
-  }
-  return freeState.played;
+// ===================== GAME STATE =====================
+let freeState = JSON.parse(localStorage.getItem('ml_free') || '{"played":[]}');
+function proStateKey() { return currentUser ? 'ml_pro_' + currentUser.id : null; }
+function loadProState() {
+  const k = proStateKey();
+  if (!k) return { played:[], ratings:{}, themeScores:{}, themeCounts:{} };
+  return JSON.parse(localStorage.getItem(k) || '{"played":[],"ratings":{},"themeScores":{},"themeCounts":{}}');
 }
+function saveProState(s) { const k = proStateKey(); if (k) localStorage.setItem(k, JSON.stringify(s)); }
+function saveFreeState() { localStorage.setItem('ml_free', JSON.stringify(freeState)); }
+function getPlayedIds() { return currentUser ? loadProState().played : freeState.played; }
+function isPro() { return !!currentUser; }
+function isUnlocked(id) { return isPro() || id < FREE_LIMIT; }
 
 function markPlayed(id) {
   if (currentUser) {
@@ -765,22 +721,15 @@ function markPlayed(id) {
   }
 }
 
-// ===================== MISC STATE =====================
-let currentML = null;
-let fillBackScreen = 'screenHome';
-let currentAnswers = {};
-let selectedRating = 0;
-let activeThemeFilter = null;
-
 // ===================== HELPERS =====================
-function isPro() { return !!currentUser; }
-function isUnlocked(id) { return isPro() || id < FREE_LIMIT; }
+let currentML = null, fillBackScreen = 'screenHome', currentAnswers = {}, selectedRating = 0, activeThemeFilter = null;
+
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function themePill(t) { return `<span class="theme-pill ${t}">${t}</span>`; }
 function toast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2600);
+  t.textContent = msg; t.style.transform = 'translateX(-50%) translateY(0)';
+  setTimeout(() => t.style.transform = 'translateX(-50%) translateY(100px)', 2600);
 }
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -793,84 +742,21 @@ function showScreen(id) {
   if (id === 'screenLeaderboard') buildLeaderboard();
   window.scrollTo(0, 0);
 }
-function hidden(el) { el.classList.add('hidden'); }
-function show(el) { el.classList.remove('hidden'); }
 
 // ===================== AUTH UI =====================
 function updateAuthUI() {
   const prompt = document.getElementById('signInPrompt');
   const chip = document.getElementById('userChip');
   if (currentUser) {
-    hidden(prompt);
-    show(chip);
+    prompt.classList.add('hidden');
+    chip.classList.remove('hidden');
     document.getElementById('userAvatar').src = currentUser.avatar || '';
-    document.getElementById('userName').textContent = currentUser.name || currentUser.email;
+    document.getElementById('userName').textContent = currentUser.name;
     document.getElementById('headerSub').textContent = '120 hilarious stories • Ratings • Personalized recommendations';
   } else {
-    show(prompt);
-    hidden(chip);
+    prompt.classList.remove('hidden');
+    chip.classList.add('hidden');
     document.getElementById('headerSub').textContent = '50 free stories • Sign in to unlock all 120!';
-  }
-}
-
-// ===================== GOOGLE SIGN IN =====================
-function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); }
-function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
-function modalBgClick(e) { if (e.target === document.getElementById('loginModal')) closeLoginModal(); }
-
-// ---- Google OAuth popup flow ----
-const GOOGLE_CLIENT_ID = '431029139383-9opp9q8be5o9vh2ouli2qrv79omfauvl.apps.googleusercontent.com';
-
-function triggerGoogleSignIn() {
-  const redirectUri = window.location.origin + window.location.pathname;
-  const params = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: redirectUri,
-    response_type: 'token id_token',
-    scope: 'openid profile email',
-    nonce: Math.random().toString(36).slice(2),
-    prompt: 'select_account'
-  });
-  const w = 500, h = 600;
-  const left = window.screenX + (window.outerWidth - w) / 2;
-  const top = window.screenY + (window.outerHeight - h) / 2;
-  const popup = window.open(
-    'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString(),
-    'google-signin',
-    `width=${w},height=${h},left=${left},top=${top},toolbar=no,menubar=no`
-  );
-  // Poll for redirect back with token
-  const timer = setInterval(() => {
-    try {
-      if (!popup || popup.closed) { clearInterval(timer); return; }
-      const url = popup.location.href;
-      if (url.includes(window.location.hostname)) {
-        clearInterval(timer);
-        popup.close();
-        const hash = new URLSearchParams(url.split('#')[1] || '');
-        const idToken = hash.get('id_token');
-        if (idToken) handleGoogleCredential(idToken);
-      }
-    } catch(e) { /* cross-origin, keep polling */ }
-  }, 300);
-}
-
-function handleGoogleCredential(idToken) {
-  try {
-    const payload = JSON.parse(atob(idToken.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
-    saveUser({
-      name: payload.name,
-      email: payload.email,
-      avatar: payload.picture,
-      token: idToken
-    });
-    closeLoginModal();
-    updateAuthUI();
-    updateHome();
-    toast('🎉 Welcome, ' + (payload.name || 'friend') + '! All 120 mad libs unlocked!');
-  } catch(e) {
-    console.error('Sign-in error:', e);
-    toast('Sign-in failed. Please try again.');
   }
 }
 
@@ -878,126 +764,77 @@ function handleGoogleCredential(idToken) {
 function updateHome() {
   const played = getPlayedIds();
   document.getElementById('statPlayed').textContent = played.length;
-
   const pro = isPro();
   const pool = pro ? MAD_LIBS : MAD_LIBS.slice(0, FREE_LIMIT);
-  const remaining = pool.filter(m => !played.includes(m.id)).length;
-  document.getElementById('statRemaining').textContent = remaining;
+  document.getElementById('statRemaining').textContent = pool.filter(m => !played.includes(m.id)).length;
 
-  // Avg rating (pro only)
   const avgBox = document.getElementById('statAvgBox');
   if (pro) {
-    show(avgBox);
+    avgBox.classList.remove('hidden');
     const ps = loadProState();
     const vals = Object.values(ps.ratings);
-    document.getElementById('statAvgRating').textContent = vals.length
-      ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '—';
-  } else {
-    hidden(avgBox);
-  }
+    document.getElementById('statAvgRating').textContent = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '—';
+  } else { avgBox.classList.add('hidden'); }
 
-  // Fav themes (pro only)
   const favSection = document.getElementById('favThemesSection');
   if (pro) {
     const ps = loadProState();
     const themes = Object.keys(ps.themeScores).filter(t => ps.themeCounts[t] >= 2);
-    const top = themes.sort((a,b) => (ps.themeScores[b]/ps.themeCounts[b]) - (ps.themeScores[a]/ps.themeCounts[a])).slice(0,3);
-    if (top.length) {
-      show(favSection);
-      document.getElementById('favThemesList').innerHTML = top.map(themePill).join('');
-    } else { hidden(favSection); }
-  } else { hidden(favSection); }
+    const top = [...themes].sort((a,b) => (ps.themeScores[b]/ps.themeCounts[b]) - (ps.themeScores[a]/ps.themeCounts[a])).slice(0,3);
+    if (top.length) { favSection.classList.remove('hidden'); document.getElementById('favThemesList').innerHTML = top.map(themePill).join(''); }
+    else favSection.classList.add('hidden');
+  } else favSection.classList.add('hidden');
 
-  // Upsell banner (free only)
-  const upsell = document.getElementById('homeUpsell');
-  if (!pro) {
-    const playedFree = played.length;
-    const urgency = playedFree >= 40
-      ? `Only ${FREE_LIMIT - playedFree} free stories left!`
-      : `${FREE_LIMIT - playedFree} more free stories available`;
-    upsell.innerHTML = `<div class="upsell-banner">
-      <div class="upsell-icon">🔓</div>
-      <div class="upsell-text">
-        <h3>Unlock 70 More Stories!</h3>
-        <p>Sign in free to access all 120 mad libs, save ratings, and get personalized recommendations.</p>
-      </div>
-      <div class="upsell-actions">
-        <button class="btn btn-gold" style="padding:9px 20px;font-size:1.05rem" onclick="openLoginModal()">Sign In Free →</button>
-      </div>
-    </div>`;
-  } else { upsell.innerHTML = ''; }
+  document.getElementById('homeUpsell').innerHTML = !pro ? `<div class="upsell-banner">
+    <div class="upsell-icon">🔓</div>
+    <div class="upsell-text"><h3>Unlock 70 More Stories!</h3><p>Sign in free to access all 120 mad libs, save ratings, and get personalized recommendations.</p></div>
+    <div class="upsell-actions"><button class="btn btn-gold" style="padding:9px 20px;font-size:1.05rem" onclick="openLoginModal()">Sign In Free →</button></div>
+  </div>` : '';
 
-  // Buttons
-  const btns = document.getElementById('homeBtns');
-  if (pro) {
-    btns.innerHTML = `
-      <button class="btn btn-primary" onclick="startGame()">🎲 Play Random!</button>
-      <button class="btn btn-green" onclick="showScreen('screenRecommended')">✨ Recommended</button>
-      <button class="btn btn-blue" onclick="showScreen('screenLibrary')">📚 Library</button>
-      <button class="btn btn-secondary" onclick="showScreen('screenPrefs')">📊 Preferences</button>
-      <button class="btn btn-outline" onclick="showScreen('screenLeaderboard')">🏆 Leaderboard</button>
-      <button class="btn btn-outline" onclick="showScreen('screenHistory')">📜 History</button>`;
-  } else {
-    btns.innerHTML = `
-      <button class="btn btn-primary" onclick="startGame()">🎲 Play Random!</button>
-      <button class="btn btn-blue" onclick="showScreen('screenLibrary')">📚 Library</button>
-      <button class="btn btn-outline" onclick="showScreen('screenLeaderboard')">🏆 Leaderboard</button>
-      <button class="btn btn-outline" onclick="showScreen('screenHistory')">📜 History</button>`;
-  }
+  document.getElementById('homeBtns').innerHTML = pro ? `
+    <button class="btn btn-primary" onclick="startGame()">🎲 Play Random!</button>
+    <button class="btn btn-green" onclick="showScreen('screenRecommended')">✨ Recommended</button>
+    <button class="btn btn-blue" onclick="showScreen('screenLibrary')">📚 Library</button>
+    <button class="btn btn-secondary" onclick="showScreen('screenPrefs')">📊 Preferences</button>
+    <button class="btn btn-outline" onclick="showScreen('screenLeaderboard')">🏆 Leaderboard</button>
+    <button class="btn btn-outline" onclick="showScreen('screenHistory')">📜 History</button>` : `
+    <button class="btn btn-primary" onclick="startGame()">🎲 Play Random!</button>
+    <button class="btn btn-blue" onclick="showScreen('screenLibrary')">📚 Library</button>
+    <button class="btn btn-outline" onclick="showScreen('screenLeaderboard')">🏆 Leaderboard</button>
+    <button class="btn btn-outline" onclick="showScreen('screenHistory')">📜 History</button>`;
 }
 
-// ===================== GAME FLOW =====================
+// ===================== GAME =====================
 function startGame(theme, backScreen) {
   fillBackScreen = backScreen || 'screenHome';
-  const pool = getAvailablePool(theme);
+  let pool = isPro() ? MAD_LIBS : MAD_LIBS.slice(0, FREE_LIMIT);
+  pool = pool.filter(m => !getPlayedIds().includes(m.id));
+  if (theme) pool = pool.filter(m => m.themes.includes(theme));
   if (!pool.length) {
-    if (theme) {
-      toast('No more unplayed stories in that theme! Try a different one.');
-    } else {
-      if (!isPro()) {
-        toast('🎉 You\'ve played all free stories! Sign in to unlock 70 more.');
-        openLoginModal();
-      } else {
-        toast('🎉 All 120 stories played! Starting over...');
-        // Reset pro state played
-        const ps = loadProState(); ps.played = []; saveProState(ps);
-        startGame(theme, backScreen);
-      }
-    }
-    return;
+    if (theme) { toast('No more unplayed stories in that theme!'); return; }
+    if (!isPro()) { toast('🎉 All free stories played! Sign in for 70 more.'); openLoginModal(); return; }
+    const ps = loadProState(); ps.played = []; saveProState(ps);
+    toast('🎉 All 120 stories played! Starting over...'); startGame(null, backScreen); return;
   }
   currentML = pool[Math.floor(Math.random() * pool.length)];
-  currentAnswers = {};
-  selectedRating = 0;
-  buildFillScreen();
-  showScreen('screenFill');
-}
-
-function getAvailablePool(theme) {
-  const played = getPlayedIds();
-  let pool = isPro() ? MAD_LIBS : MAD_LIBS.slice(0, FREE_LIMIT);
-  pool = pool.filter(m => !played.includes(m.id));
-  if (theme) pool = pool.filter(m => m.themes.includes(theme));
-  return pool;
+  currentAnswers = {}; selectedRating = 0;
+  buildFillScreen(); showScreen('screenFill');
 }
 
 function playFromLibrary(id) {
   if (!isUnlocked(id)) { openLoginModal(); return; }
   currentML = MAD_LIBS.find(m => m.id === id);
   if (!currentML) return;
-  currentAnswers = {};
-  selectedRating = 0;
+  currentAnswers = {}; selectedRating = 0;
   fillBackScreen = 'screenLibrary';
-  buildFillScreen();
-  showScreen('screenFill');
+  buildFillScreen(); showScreen('screenFill');
 }
 
 function buildFillScreen() {
   document.getElementById('fillTitle').textContent = currentML.title;
   document.getElementById('fillThemes').innerHTML = currentML.themes.map(themePill).join('');
-  const grid = document.getElementById('wordsGrid');
-  grid.innerHTML = currentML.words.map((w, i) => `
-    <div class="word-input-group">
+  document.getElementById('wordsGrid').innerHTML = currentML.words.map((w, i) =>
+    `<div class="word-input-group">
       <label>${escHtml(w.label)}</label>
       <input type="text" id="inp_${w.key}" placeholder="${escHtml(w.ph)}"
         oninput="onWordInput(this,'${w.key}')" onkeydown="handleEnter(event,${i})">
@@ -1006,88 +843,52 @@ function buildFillScreen() {
 }
 
 function fillBack() { showScreen(fillBackScreen); }
-
-function onWordInput(el, key) {
-  currentAnswers[key] = el.value.trim();
-  el.classList.toggle('filled', !!el.value.trim());
-  updateProgress();
-}
-
+function onWordInput(el, key) { currentAnswers[key] = el.value.trim(); el.classList.toggle('filled', !!el.value.trim()); updateProgress(); }
 function updateProgress() {
-  const filled = currentML.words.filter(w => currentAnswers[w.key]).length;
-  document.getElementById('fillProgress').style.width = (filled / currentML.words.length * 100) + '%';
+  document.getElementById('fillProgress').style.width = (currentML.words.filter(w => currentAnswers[w.key]).length / currentML.words.length * 100) + '%';
 }
-
 function handleEnter(e, idx) {
   if (e.key !== 'Enter') return;
   const inputs = document.querySelectorAll('#wordsGrid input');
-  if (inputs[idx + 1]) inputs[idx + 1].focus(); else revealStory();
+  if (inputs[idx+1]) inputs[idx+1].focus(); else revealStory();
 }
 
 function revealStory() {
   const defaults = ['banana','wobbly','sprinted','3','purple','narwhal','loudly','socks','enormous','sparkly'];
-  currentML.words.forEach((w, i) => {
-    if (!currentAnswers[w.key]) currentAnswers[w.key] = defaults[i % defaults.length];
-  });
+  currentML.words.forEach((w, i) => { if (!currentAnswers[w.key]) currentAnswers[w.key] = defaults[i % defaults.length]; });
   document.getElementById('storyTitle').textContent = currentML.title;
   document.getElementById('storyThemes').innerHTML = currentML.themes.map(themePill).join('');
-  document.getElementById('storyBody').innerHTML = buildStoryHtml(currentML.template, currentAnswers);
-  // Label the continue button
-  const nextBtn = document.getElementById('storyNextBtn');
-  if (isPro()) {
-    nextBtn.textContent = '⭐ Rate This Story!';
-  } else {
-    nextBtn.textContent = '→ Back Home';
-  }
+  document.getElementById('storyBody').innerHTML = currentML.template.split(/(\{[^}]+\})/g).map(part => {
+    const m = part.match(/^\{([^}]+)\}$/);
+    return (m && currentAnswers[m[1]]) ? `<span class="highlight">${escHtml(currentAnswers[m[1]])}</span>` : escHtml(part);
+  }).join('');
+  document.getElementById('storyNextBtn').textContent = isPro() ? '⭐ Rate This Story!' : '→ Back Home';
   markPlayed(currentML.id);
   showScreen('screenStory');
 }
 
-function buildStoryHtml(template, answers) {
-  return template.split(/(\{[^}]+\})/g).map(part => {
-    const m = part.match(/^\{([^}]+)\}$/);
-    if (m && answers[m[1]]) return `<span class="highlight">${escHtml(answers[m[1]])}</span>`;
-    return escHtml(part);
-  }).join('');
-}
+function afterStory() { isPro() ? showScreen('screenRating') : showScreen('screenHome'); }
 
-function afterStory() {
-  if (isPro()) {
-    showScreen('screenRating');
-  } else {
-    showScreen('screenHome');
-  }
-}
-
-// ===================== RATING (PRO) =====================
+// ===================== RATING =====================
 const ratingLabels = ['','😬 Meh','😐 Okay','🙂 Not bad','😊 Pretty good','😄 Good!','🤣 Funny!','😂 Very funny!','🤩 Hilarious!','🎉 Amazing!','🏆 Masterpiece!'];
-
 function buildStarsRow() {
-  const row = document.getElementById('starsRow');
-  row.innerHTML = '';
+  const row = document.getElementById('starsRow'); row.innerHTML = '';
   for (let i = 1; i <= 10; i++) {
     const btn = document.createElement('button');
-    btn.className = 'star-btn'; btn.textContent = '⭐';
-    btn.onclick = () => selectRating(i);
+    btn.className = 'star-btn'; btn.textContent = '⭐'; btn.onclick = () => selectRating(i);
     row.appendChild(btn);
   }
 }
-
 function selectRating(n) {
   selectedRating = n;
   document.querySelectorAll('.star-btn').forEach((b, i) => b.classList.toggle('active', i < n));
   document.getElementById('ratingLabel').textContent = ratingLabels[n];
 }
-
 function submitRating() {
   if (!selectedRating) { toast('Please select a rating first! ⭐'); return; }
-  if (!isPro()) { toast('Sign in to save ratings!'); return; }
   const ps = loadProState();
   ps.ratings[currentML.id] = selectedRating;
-  currentML.themes.forEach(t => {
-    ps.themeScores[t] = (ps.themeScores[t] || 0) + selectedRating;
-    ps.themeCounts[t] = (ps.themeCounts[t] || 0) + 1;
-  });
+  currentML.themes.forEach(t => { ps.themeScores[t] = (ps.themeScores[t]||0)+selectedRating; ps.themeCounts[t] = (ps.themeCounts[t]||0)+1; });
   saveProState(ps);
   toast(ratingLabels[selectedRating] + ' Rating saved!');
   setTimeout(() => showScreen('screenHome'), 1400);
@@ -1097,396 +898,257 @@ function submitRating() {
 function buildHistory() {
   const played = getPlayedIds();
   const grid = document.getElementById('historyGrid');
-  if (!played.length) {
-    grid.innerHTML = '<p style="color:#aaa;padding:20px;grid-column:1/-1">No stories played yet!</p>'; return;
-  }
-  const ps = isPro() ? loadProState() : { ratings: {} };
+  if (!played.length) { grid.innerHTML = '<p style="color:#aaa;padding:20px;grid-column:1/-1">No stories played yet!</p>'; return; }
+  const ps = isPro() ? loadProState() : { ratings:{} };
   grid.innerHTML = [...played].reverse().map(id => {
     const ml = MAD_LIBS.find(m => m.id === id);
     if (!ml) return '';
     const r = ps.ratings[id];
-    const stars = r ? '⭐'.repeat(Math.min(r, 10)) : (isPro() ? 'Unrated' : '');
     return `<div class="history-card">
       <h3>${escHtml(ml.title)}</h3>
       <div class="h-themes">${ml.themes.map(themePill).join('')}</div>
-      ${stars ? `<div class="h-rating">${stars}</div>` : ''}
+      ${r ? `<div class="h-rating">${'⭐'.repeat(Math.min(r,10))}</div>` : ''}
     </div>`;
   }).join('');
 }
 
-// ===================== PREFERENCES (PRO) =====================
+// ===================== PREFERENCES =====================
 function buildPrefs() {
   if (!isPro()) { showScreen('screenHome'); openLoginModal(); return; }
-  const chart = document.getElementById('prefsChart');
-  const noData = document.getElementById('prefsNoData');
   const ps = loadProState();
   const themes = Object.keys(ps.themeScores);
-  if (!themes.length) { chart.innerHTML = ''; noData.style.display = 'block'; return; }
+  const chart = document.getElementById('prefsChart');
+  const noData = document.getElementById('prefsNoData');
+  if (!themes.length) { chart.innerHTML = ''; noData.style.display='block'; return; }
   noData.style.display = 'none';
-  const maxAvg = Math.max(...themes.map(t => ps.themeScores[t] / ps.themeCounts[t]));
-  const sorted = [...themes].sort((a, b) => (ps.themeScores[b]/ps.themeCounts[b]) - (ps.themeScores[a]/ps.themeCounts[a]));
-  chart.innerHTML = sorted.map(t => {
-    const avg = (ps.themeScores[t] / ps.themeCounts[t]).toFixed(1);
-    const pct = (avg / maxAvg * 100).toFixed(1);
-    const cnt = ps.themeCounts[t];
+  const maxAvg = Math.max(...themes.map(t => ps.themeScores[t]/ps.themeCounts[t]));
+  chart.innerHTML = [...themes].sort((a,b) => (ps.themeScores[b]/ps.themeCounts[b]) - (ps.themeScores[a]/ps.themeCounts[a])).map(t => {
+    const avg = (ps.themeScores[t]/ps.themeCounts[t]).toFixed(1);
     return `<div class="theme-row">
       <div class="tr-name">${themePill(t)}</div>
-      <div class="bar-bg"><div class="bar-fill" style="width:0%" data-w="${pct}%"></div></div>
-      <div class="tr-score">${avg}★ <span style="color:#aaa;font-size:.72rem">(${cnt})</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:0%" data-w="${(avg/maxAvg*100).toFixed(1)}%"></div></div>
+      <div class="tr-score">${avg}★ <span style="color:#aaa;font-size:.72rem">(${ps.themeCounts[t]})</span></div>
       <button class="play-theme-btn" onclick="startGame('${t}','screenPrefs')">▶ Play</button>
     </div>`;
   }).join('');
-  requestAnimationFrame(() => {
-    document.querySelectorAll('.bar-fill').forEach(el => { el.style.width = el.dataset.w; });
-  });
+  requestAnimationFrame(() => document.querySelectorAll('.bar-fill').forEach(el => el.style.width = el.dataset.w));
 }
 
 // ===================== LIBRARY =====================
 function buildLibrary() {
   const allThemes = [...new Set(MAD_LIBS.flatMap(m => m.themes))].sort();
-  const filterRow = document.getElementById('themeFilterRow');
-  filterRow.innerHTML =
+  document.getElementById('themeFilterRow').innerHTML =
     `<span class="theme-filter-pill${!activeThemeFilter?' active':''}" onclick="setThemeFilter(null)">All</span>` +
-    allThemes.map(t => {
-      const n = MAD_LIBS.filter(m => m.themes.includes(t)).length;
-      return `<span class="theme-filter-pill${activeThemeFilter===t?' active':''}" onclick="setThemeFilter('${t}')">${t} (${n})</span>`;
-    }).join('');
-
-  // Locked banner for free users
-  const banner = document.getElementById('libLockedBanner');
-  if (!isPro()) {
-    banner.innerHTML = `<div class="lib-locked-banner">
-      <span style="font-size:1.8rem">🔒</span>
-      <p>The last 70 stories are locked. <strong>Sign in free</strong> to unlock all 120!</p>
-      <button class="btn btn-gold" style="padding:8px 18px;font-size:1rem" onclick="openLoginModal()">Unlock All →</button>
-    </div>`;
-  } else { banner.innerHTML = ''; }
-
+    allThemes.map(t => `<span class="theme-filter-pill${activeThemeFilter===t?' active':''}" onclick="setThemeFilter('${t}')">${t} (${MAD_LIBS.filter(m=>m.themes.includes(t)).length})</span>`).join('');
+  document.getElementById('libLockedBanner').innerHTML = !isPro() ? `<div class="lib-locked-banner">
+    <span style="font-size:1.8rem">🔒</span>
+    <p>The last 70 stories are locked. <strong>Sign in free</strong> to unlock all 120!</p>
+    <button class="btn btn-gold" style="padding:8px 18px;font-size:1rem" onclick="openLoginModal()">Unlock All →</button>
+  </div>` : '';
   renderLibraryGrid();
 }
-
 function setThemeFilter(t) { activeThemeFilter = t; buildLibrary(); }
-
 function renderLibraryGrid() {
-  const search = (document.getElementById('librarySearch')?.value || '').toLowerCase();
+  const search = (document.getElementById('librarySearch')?.value||'').toLowerCase();
   let filtered = MAD_LIBS;
   if (activeThemeFilter) filtered = filtered.filter(m => m.themes.includes(activeThemeFilter));
-  if (search) filtered = filtered.filter(m =>
-    m.title.toLowerCase().includes(search) || m.themes.some(t => t.toLowerCase().includes(search)));
-
+  if (search) filtered = filtered.filter(m => m.title.toLowerCase().includes(search)||m.themes.some(t=>t.toLowerCase().includes(search)));
   document.getElementById('libCount').textContent = `Showing ${filtered.length} of ${TOTAL} mad libs`;
   const played = getPlayedIds();
-  const ps = isPro() ? loadProState() : { ratings: {} };
-
+  const ps = isPro() ? loadProState() : { ratings:{} };
   document.getElementById('libraryGrid').innerHTML = filtered.map(ml => {
-    const locked = !isUnlocked(ml.id);
-    const wasPlayed = played.includes(ml.id);
+    if (!isUnlocked(ml.id)) return `<div class="lib-card locked">
+      <h3 style="color:#a0aab4">Story #${ml.id+1}</h3>
+      <div class="lc-themes">${ml.themes.map(themePill).join('')}</div>
+      <div class="lc-meta"><span>${ml.words.length} blanks</span></div>
+      <div class="locked-overlay"><span>🔒</span> Sign in to unlock</div>
+    </div>`;
     const r = ps.ratings[ml.id];
-    const rStr = r ? '⭐'.repeat(Math.min(r, 5)) + (r > 5 ? `+${r-5}` : '') : '';
-
-    if (locked) {
-      return `<div class="lib-card locked">
-        <h3 style="color:#a0aab4">Story #${ml.id + 1}</h3>
-        <div class="lc-themes">${ml.themes.map(themePill).join('')}</div>
-        <div class="lc-meta"><span>${ml.words.length} blanks</span></div>
-        <div class="locked-overlay"><span class="lock-badge">🔒</span> Sign in to unlock</div>
-      </div>`;
-    }
-    return `<div class="lib-card${wasPlayed?' played':''}" onclick="playFromLibrary(${ml.id})">
-      ${wasPlayed ? '<span class="played-badge">✓ Played</span>' : ''}
+    const rStr = r ? '⭐'.repeat(Math.min(r,5))+(r>5?`+${r-5}`:'') : '';
+    return `<div class="lib-card${played.includes(ml.id)?' played':''}" onclick="playFromLibrary(${ml.id})">
+      ${played.includes(ml.id)?'<span class="played-badge">✓ Played</span>':''}
       <h3>${escHtml(ml.title)}</h3>
       <div class="lc-themes">${ml.themes.map(themePill).join('')}</div>
-      <div class="lc-meta">
-        <span>${ml.words.length} blanks</span>
-        ${r ? `<span class="lc-rating">${rStr}</span>` : `<span style="color:#ddd">${isPro()?'Unrated':''}</span>`}
-      </div>
+      <div class="lc-meta"><span>${ml.words.length} blanks</span>${r?`<span class="lc-rating">${rStr}</span>`:'<span style="color:#ddd">Unrated</span>'}</div>
     </div>`;
-  }).join('') || '<p style="color:#aaa;padding:20px;grid-column:1/-1">Nothing matches your search.</p>';
+  }).join('') || '<p style="color:#aaa;padding:20px;grid-column:1/-1">Nothing matches.</p>';
 }
 
-// ===================== RECOMMENDED (PRO) =====================
+// ===================== RECOMMENDED =====================
 function buildRecommended() {
   const container = document.getElementById('recContent');
   if (!isPro()) {
-    container.innerHTML = `<div class="no-recs">
-      <div style="font-size:3rem;margin-bottom:14px">✨</div>
+    container.innerHTML = `<div class="no-recs"><div style="font-size:3rem;margin-bottom:14px">✨</div>
       <h3 style="font-family:'Boogaloo',cursive;font-size:1.6rem;margin-bottom:10px">Personalized Picks, Just For You</h3>
       <p style="margin-bottom:22px">Sign in to get stories recommended based on your ratings and favorite themes.</p>
-      <button class="btn btn-gold" onclick="openLoginModal()">Sign In Free →</button>
-    </div>`;
-    return;
+      <button class="btn btn-gold" onclick="openLoginModal()">Sign In Free →</button></div>`; return;
   }
   const ps = loadProState();
-  const themes = Object.keys(ps.themeScores).filter(t => ps.themeCounts[t] >= 1);
+  const themes = Object.keys(ps.themeScores);
   if (!themes.length) {
-    container.innerHTML = `<div class="no-recs">
-      <div style="font-size:3rem;margin-bottom:12px">🎲</div>
+    container.innerHTML = `<div class="no-recs"><div style="font-size:3rem;margin-bottom:12px">🎲</div>
       <p>Rate some stories to get personalized recommendations!</p>
-      <div style="margin-top:18px"><button class="btn btn-primary" onclick="startGame()">▶ Play a Random Story</button></div>
-    </div>`; return;
+      <div style="margin-top:18px"><button class="btn btn-primary" onclick="startGame()">▶ Play a Random Story</button></div></div>`; return;
   }
-  const avgScore = t => (ps.themeScores[t] || 0) / (ps.themeCounts[t] || 1);
-  const topThemes = [...themes].sort((a, b) => avgScore(b) - avgScore(a)).slice(0, 3);
-  const unplayed = MAD_LIBS.filter(m => !ps.played.includes(m.id));
+  const avgScore = t => (ps.themeScores[t]||0)/(ps.themeCounts[t]||1);
+  const topThemes = [...themes].sort((a,b)=>avgScore(b)-avgScore(a)).slice(0,3);
+  const unplayed = MAD_LIBS.filter(m=>!ps.played.includes(m.id));
   let html = '';
-  const scored = unplayed.map(ml => {
-    const s = ml.themes.reduce((sum, t) => sum + avgScore(t), 0) / ml.themes.length;
-    return { ml, score: s * 2 + ml.themes.filter(t => topThemes.includes(t)).length };
-  }).sort((a, b) => b.score - a.score);
-  const topPicks = scored.slice(0, 6).map(x => x.ml);
-  if (topPicks.length) {
-    html += `<div class="rec-section"><h3>⭐ Top Picks For You</h3>
-      <div class="rec-grid">${topPicks.map(m => recCard(m, topThemes)).join('')}</div></div>`;
-  }
+  const top = unplayed.map(ml=>({ml,score:ml.themes.reduce((s,t)=>s+avgScore(t),0)/ml.themes.length*2+ml.themes.filter(t=>topThemes.includes(t)).length})).sort((a,b)=>b.score-a.score).slice(0,6).map(x=>x.ml);
+  if (top.length) html += `<div class="rec-section"><h3>⭐ Top Picks For You</h3><div class="rec-grid">${top.map(m=>recCard(m,topThemes)).join('')}</div></div>`;
   topThemes.forEach(theme => {
-    const pool = unplayed.filter(m => m.themes.includes(theme)).slice(0, 4);
+    const pool = unplayed.filter(m=>m.themes.includes(theme)).slice(0,4);
     if (!pool.length) return;
-    html += `<div class="rec-section">
-      <h3>${themePill(theme)} <span style="font-size:.95rem;font-weight:700;color:#999">avg ${avgScore(theme).toFixed(1)}⭐</span></h3>
-      <div class="rec-grid">${pool.map(m => recCard(m, [theme])).join('')}</div></div>`;
+    html += `<div class="rec-section"><h3>${themePill(theme)} <span style="font-size:.95rem;font-weight:700;color:#999">avg ${avgScore(theme).toFixed(1)}⭐</span></h3><div class="rec-grid">${pool.map(m=>recCard(m,[theme])).join('')}</div></div>`;
   });
-  if (!html) {
-    html = `<div class="no-recs"><p>You've played all stories from your fave themes! Try some random ones.</p>
-      <div style="margin-top:16px"><button class="btn btn-primary" onclick="startGame()">▶ Play Random</button></div></div>`;
-  }
-  container.innerHTML = html;
+  container.innerHTML = html || `<div class="no-recs"><p>You've played everything from your fave themes!</p><div style="margin-top:16px"><button class="btn btn-primary" onclick="startGame()">▶ Play Random</button></div></div>`;
 }
-
 function recCard(ml, highlight) {
-  const matching = ml.themes.filter(t => highlight.includes(t));
-  const why = matching.length ? `Matches your ${matching.join(' + ')} taste` : '';
+  const matching = ml.themes.filter(t=>highlight.includes(t));
   return `<div class="rec-card" onclick="playFromLibrary(${ml.id})">
     <h3>${escHtml(ml.title)}</h3>
     <div class="rc-themes">${ml.themes.map(themePill).join('')}</div>
-    ${why ? `<div class="rec-why">✓ ${why}</div>` : ''}
+    ${matching.length?`<div class="rec-why">✓ Matches your ${matching.join(' + ')} taste</div>`:''}
   </div>`;
 }
-
 
 // ===================== LEADERBOARD =====================
 let activeLbTab = 0;
 
-async function registerOnLeaderboard(user) {
-  if (!user || !user.email) return;
-  const key = 'lb_og:' + user.email;
+async function registerOnLeaderboard() {
+  if (!currentUser) return;
   try {
-    const existing = await window.storage.get(key, true);
-    if (!existing) {
-      // First time — record join timestamp
-      await window.storage.set(key, JSON.stringify({
-        name: user.name,
-        avatar: user.avatar || '',
-        email: user.email,
-        joinedAt: Date.now()
-      }), true);
-    } else {
-      // Update name/avatar in case they changed
-      const data = JSON.parse(existing.value);
-      data.name = user.name;
-      data.avatar = user.avatar || data.avatar || '';
-      await window.storage.set(key, JSON.stringify(data), true);
-    }
+    await sb.from('leaderboard_og').upsert({
+      email: currentUser.email,
+      name: currentUser.name,
+      avatar: currentUser.avatar || ''
+    }, { onConflict: 'email', ignoreDuplicates: false });
   } catch(e) { console.log('LB register error:', e); }
 }
 
 async function updatePlayedLeaderboard(count) {
   if (!currentUser) return;
   try {
-    await window.storage.set('lb_played:' + currentUser.email, JSON.stringify({
+    await sb.from('leaderboard_played').upsert({
+      email: currentUser.email,
       name: currentUser.name,
       avatar: currentUser.avatar || '',
-      email: currentUser.email,
       played: count
-    }), true);
-  } catch(e) { console.log('LB played update error:', e); }
+    }, { onConflict: 'email' });
+  } catch(e) { console.log('LB played error:', e); }
 }
 
 function switchLbTab(idx) {
   activeLbTab = idx;
-  document.querySelectorAll('.lb-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+  document.querySelectorAll('.lb-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
   renderLbTab();
 }
 
 async function buildLeaderboard() {
   activeLbTab = 0;
-  document.querySelectorAll('.lb-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
-
-  // Show my rank card
+  document.querySelectorAll('.lb-tab').forEach((t,i) => t.classList.toggle('active', i===0));
   const myRankEl = document.getElementById('lbMyRank');
-  if (currentUser) {
-    myRankEl.innerHTML = '<div class="lb-my-rank"><div><div class="my-rank-num">👤</div><div class="my-rank-label">Your stats</div></div><div id="myRankStats" style="flex:1"></div></div>';
-  } else {
-    myRankEl.innerHTML = '<div style="background:#f9f9f9;border:2px dashed #ddd;border-radius:14px;padding:14px 18px;margin-bottom:14px;font-size:.9rem;color:#aaa;font-weight:700">Sign in to appear on the leaderboard!</div>';
-  }
-
-  // Update own played count if signed in
-  if (currentUser) {
-    const ps = loadProState();
-    if (ps.played.length > 0) await updatePlayedLeaderboard(ps.played.length);
-  }
-
+  myRankEl.innerHTML = currentUser
+    ? `<div class="lb-my-rank"><div style="font-size:2rem">👤</div><div id="myRankStats" style="flex:1;font-weight:700">Loading your rank...</div></div>`
+    : `<div style="background:#f9f9f9;border:2px dashed #ddd;border-radius:14px;padding:14px 18px;margin-bottom:14px;font-size:.9rem;color:#aaa;font-weight:700">Sign in to appear on the leaderboard!</div>`;
   renderLbTab();
 }
 
 async function renderLbTab() {
   const el = document.getElementById('lbContent');
   el.innerHTML = '<div class="lb-loading">Loading... ⏳</div>';
-  // No try/catch here — each tab function handles its own errors gracefully
-  if (activeLbTab === 0) {
-    await renderOGTab(el);
-  } else {
-    await renderMostPlayedTab(el);
-  }
-}
-
-async function fetchAllEntries(prefix) {
-  // Safely fetch all entries for a given prefix, returns [] on any error
-  try {
-    const keys = await window.storage.list(prefix, true);
-    if (!keys || !keys.keys || keys.keys.length === 0) return [];
-    const entries = await Promise.all(
-      keys.keys.map(async k => {
-        try {
-          const r = await window.storage.get(k, true);
-          return r ? JSON.parse(r.value) : null;
-        } catch(e) { return null; }
-      })
-    );
-    return entries.filter(Boolean);
-  } catch(e) {
-    console.log('fetchAllEntries error:', e);
-    return [];
-  }
+  if (activeLbTab === 0) await renderOGTab(el);
+  else await renderMostPlayedTab(el);
 }
 
 async function renderOGTab(el) {
-  const total_spots = 50;
-  const entries = await fetchAllEntries('lb_og:');
-  const valid = entries.sort((a, b) => a.joinedAt - b.joinedAt).slice(0, total_spots);
-  const myIdx = currentUser ? valid.findIndex(e => e.email === currentUser.email) : -1;
-  const spotsLeft = total_spots - valid.length;
-
-  const desc = `<p class="lb-section-desc">👑 The first 50 accounts ever created — these are the OGs!
-    ${spotsLeft > 0 ? `<strong>${spotsLeft} OG spot${spotsLeft !== 1 ? 's' : ''} still available!</strong> Sign in now to claim yours.` : 'All 50 OG spots are claimed! 🎉'}</p>`;
-
-  // Update my rank card
-  const myRankStats = document.getElementById('myRankStats');
-  if (myRankStats && currentUser) {
-    if (myIdx !== -1) {
-      myRankStats.innerHTML = `<span style="font-weight:800;font-size:1.05rem">OG Rank #${myIdx+1}</span> <span class="lb-og-badge">👑 OG</span>`;
-    } else if (spotsLeft > 0) {
-      myRankStats.innerHTML = `<span style="color:#888;font-size:.9rem;font-weight:700">You're not an OG yet — ${spotsLeft} spot${spotsLeft!==1?'s':''} left!</span>`;
-    } else {
-      myRankStats.innerHTML = `<span style="color:#aaa;font-size:.9rem;font-weight:700">OG spots are full</span>`;
+  try {
+    const { data, error } = await sb.from('leaderboard_og').select('*').order('joined_at', { ascending: true }).limit(50);
+    if (error) throw error;
+    const entries = data || [];
+    const spotsLeft = 50 - entries.length;
+    const myIdx = currentUser ? entries.findIndex(e => e.email === currentUser.email) : -1;
+    const myRankStats = document.getElementById('myRankStats');
+    if (myRankStats && currentUser) {
+      if (myIdx !== -1) myRankStats.innerHTML = `OG Rank <strong>#${myIdx+1}</strong> <span class="lb-og-badge">👑 OG</span>`;
+      else if (spotsLeft > 0) myRankStats.innerHTML = `<span style="color:#888">${spotsLeft} OG spot${spotsLeft!==1?'s':''} still available! Keep playing to get noticed.</span>`;
+      else myRankStats.innerHTML = `<span style="color:#aaa">All 50 OG spots are taken.</span>`;
     }
+    const desc = `<p class="lb-section-desc">👑 The first 50 accounts ever created on Mad Libs Mania — these are the OGs! ${spotsLeft>0?`<strong>${spotsLeft} spot${spotsLeft!==1?'s':''} still available!</strong>`:''}</p>`;
+    if (!entries.length) { el.innerHTML = desc + '<div class="lb-empty">No accounts yet — sign in to be first! 🎉</div>'; return; }
+    el.innerHTML = desc + renderTable(entries, myIdx, (e,i) => ({
+      score: `<div class="lb-score">#${i+1}<span>joined</span></div>`,
+      extra: '<span class="lb-og-badge">👑 OG</span>'
+    }));
+  } catch(e) {
+    console.error(e);
+    el.innerHTML = '<div class="lb-empty">Could not load. Check your connection and try again.</div>';
   }
-
-  if (!valid.length) {
-    el.innerHTML = desc + '<div class="lb-empty">No one has signed in yet — be the first OG! 🎉</div>';
-    return;
-  }
-
-  el.innerHTML = desc + renderTable(valid, myIdx, (e, i) => ({
-    score: `<div class="lb-score">#${i+1}<span>joined</span></div>`,
-    extra: '<span class="lb-og-badge">👑 OG</span>'
-  }));
 }
 
 async function renderMostPlayedTab(el) {
-  const entries = await fetchAllEntries('lb_played:');
-  const valid = entries.filter(e => e.played > 0).sort((a, b) => b.played - a.played).slice(0, 50);
-  const myIdx = currentUser ? valid.findIndex(e => e.email === currentUser.email) : -1;
-
-  // Check if current user has plays but isn't in top 50
-  let myEntry = null;
-  if (currentUser) {
-    const ps = loadProState();
-    if (ps.played.length > 0) {
-      myEntry = { name: currentUser.name, avatar: currentUser.avatar, email: currentUser.email, played: ps.played.length };
+  try {
+    const { data, error } = await sb.from('leaderboard_played').select('*').order('played', { ascending: false }).limit(50);
+    if (error) throw error;
+    const entries = (data || []).filter(e => e.played > 0);
+    const myIdx = currentUser ? entries.findIndex(e => e.email === currentUser.email) : -1;
+    const myRankStats = document.getElementById('myRankStats');
+    if (myRankStats && currentUser) {
+      const ps = loadProState();
+      if (myIdx !== -1) myRankStats.innerHTML = `Rank <strong>#${myIdx+1}</strong> Most Played · ${entries[myIdx].played} stories`;
+      else if (ps.played.length > 0) myRankStats.innerHTML = `<span style="color:#888">${ps.played.length} stories played · not in top 50 yet</span>`;
+      else myRankStats.innerHTML = `<span style="color:#aaa">Play some stories to appear here!</span>`;
     }
+    const desc = `<p class="lb-section-desc">🎭 Top 50 players by total mad libs played. Keep playing to climb the ranks!</p>`;
+    if (!entries.length) { el.innerHTML = desc + '<div class="lb-empty">No plays yet — play a story to be first! 🎭</div>'; return; }
+    el.innerHTML = desc + renderTable(entries, myIdx, (e) => ({
+      score: `<div class="lb-score">${e.played}<span>played</span></div>`,
+      extra: ''
+    }));
+  } catch(e) {
+    console.error(e);
+    el.innerHTML = '<div class="lb-empty">Could not load. Check your connection and try again.</div>';
   }
-
-  const desc = `<p class="lb-section-desc">🎭 Top 50 players by total mad libs played. Play more stories to climb the ranks!</p>`;
-
-  // Update my rank card
-  const myRankStats = document.getElementById('myRankStats');
-  if (myRankStats && currentUser) {
-    if (myIdx !== -1) {
-      myRankStats.innerHTML = `<span style="font-weight:800;font-size:1.05rem">Rank #${myIdx+1} Most Played · ${valid[myIdx].played} stories</span>`;
-    } else if (myEntry) {
-      // Not in top 50 yet — show their count
-      const beat = valid.filter(e => e.played < myEntry.played).length;
-      myRankStats.innerHTML = `<span style="font-weight:800;font-size:1.05rem">${myEntry.played} stories played</span> <span style="color:#aaa;font-size:.82rem;font-weight:700"> · not in top 50 yet</span>`;
-    } else {
-      myRankStats.innerHTML = `<span style="color:#aaa;font-size:.9rem;font-weight:700">Play some stories to appear here!</span>`;
-    }
-  }
-
-  if (!valid.length) {
-    el.innerHTML = desc + '<div class="lb-empty">No plays recorded yet — play a story to be first! 🎭</div>';
-    return;
-  }
-
-  el.innerHTML = desc + renderTable(valid, myIdx, (e) => ({
-    score: `<div class="lb-score">${e.played}<span>played</span></div>`,
-    extra: ''
-  }));
 }
 
 function renderTable(entries, myIdx, getScore) {
-  if (!entries.length) return '<div class="lb-empty">Nothing here yet!</div>';
-  const rankClass = i => i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
-  const rankEmoji = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1);
-
-  const rows = entries.map((e, i) => {
-    const { score, extra } = getScore(e, i);
-    const isMe = currentUser && e.email === currentUser.email;
-    const avatarHtml = e.avatar
-      ? `<img src="${e.avatar}" alt="" onerror="this.parentElement.textContent='👤'">`
-      : '👤';
-    return `<div class="lb-row${isMe ? ' is-me' : ''}">
-      <div class="lb-rank ${rankClass(i)}">${rankEmoji(i)}</div>
-      <div class="lb-user">
-        <div class="lb-avatar">${avatarHtml}</div>
-        <span class="lb-name">${escHtml(e.name || 'Anonymous')}</span>
-        ${isMe ? '<span class="lb-you-tag">YOU</span>' : ''}
-        ${extra}
-      </div>
-      ${score}
-    </div>`;
-  }).join('');
-
+  const rankEmoji = i => i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1;
+  const rankClass = i => i===0?'top1':i===1?'top2':i===2?'top3':'';
   return `<div class="lb-table">
-    <div class="lb-table-header">
-      <div style="text-align:center">Rank</div>
-      <div>Player</div>
-      <div style="text-align:right">Score</div>
-    </div>
-    ${rows}
+    <div class="lb-table-header"><div style="text-align:center">Rank</div><div>Player</div><div style="text-align:right">Score</div></div>
+    ${entries.map((e,i) => {
+      const {score,extra} = getScore(e,i);
+      const isMe = currentUser && e.email === currentUser.email;
+      return `<div class="lb-row${isMe?' is-me':''}">
+        <div class="lb-rank ${rankClass(i)}">${rankEmoji(i)}</div>
+        <div class="lb-user">
+          <div class="lb-avatar">${e.avatar?`<img src="${escHtml(e.avatar)}" alt="" onerror="this.parentElement.textContent='👤'">`:' 👤'}</div>
+          <span class="lb-name">${escHtml(e.name||'Anonymous')}</span>
+          ${isMe?'<span class="lb-you-tag">YOU</span>':''}${extra}
+        </div>
+        ${score}
+      </div>`;
+    }).join('')}
   </div>`;
 }
 
 // ===================== CONFETTI =====================
 (function(){
   const bg = document.getElementById('confettiBg');
-  const colors = ['#e63946','#457b9d','#f4a261','#2a9d8f','#e9c46a','#9b5de5','#06d6a0'];
-  for (let i = 0; i < 22; i++) {
-    const d = document.createElement('div');
-    d.className = 'confetti-dot';
-    const sz = Math.random() * 18 + 7;
-    d.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;background:${colors[i%colors.length]};animation-duration:${9+Math.random()*13}s;animation-delay:${Math.random()*10}s`;
+  const colors=['#e63946','#457b9d','#f4a261','#2a9d8f','#e9c46a','#9b5de5','#06d6a0'];
+  for(let i=0;i<22;i++){
+    const d=document.createElement('div'); d.className='confetti-dot';
+    const sz=Math.random()*18+7;
+    d.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;background:${colors[i%colors.length]};animation-duration:${9+Math.random()*13}s;animation-delay:${Math.random()*10}s`;
     bg.appendChild(d);
   }
 })();
 
 // ===================== INIT =====================
-loadUser();
-if (currentUser) registerOnLeaderboard(currentUser);
 buildStarsRow();
 updateAuthUI();
 updateHome();
-// Sync played count on load
-if (currentUser) { const ps = loadProState(); if (ps.played.length > 0) updatePlayedLeaderboard(ps.played.length); }
+initAuth();
 </script>
 </body>
 </html>
