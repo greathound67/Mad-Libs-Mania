@@ -258,10 +258,11 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .avatar-edit-overlay { position:absolute; inset:0; border-radius:50%; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .2s; color:#fff; font-size:.75rem; font-weight:800; flex-direction:column; gap:2px; }
 .avatar-edit-overlay span { font-size:1.3rem; }
 /* Avatar picker modal */
-.avatar-picker-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin:18px 0; }
-.avatar-option { width:100%; aspect-ratio:1; border-radius:50%; border:3px solid transparent; cursor:pointer; font-size:2.2rem; display:flex; align-items:center; justify-content:center; background:var(--bg); transition:all .15s; }
+.avatar-picker-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:14px 0; }
+.avatar-option { width:100%; aspect-ratio:1; border-radius:50%; border:3px solid transparent; cursor:pointer; font-size:1.8rem; display:flex; align-items:center; justify-content:center; background:var(--bg); transition:all .15s; }
 .avatar-option:hover { border-color:var(--primary); transform:scale(1.1); }
 .avatar-option.selected { border-color:var(--primary); box-shadow:0 0 0 3px rgba(230,57,70,.2); transform:scale(1.1); }
+@media(max-width:500px){ .avatar-picker-grid { grid-template-columns:repeat(5,1fr); gap:5px; } .avatar-option { font-size:1.4rem; } .modal-box { max-height:90vh; overflow-y:auto; } }
 .profile-info h2 { font-family:'Boogaloo',cursive; font-size:2rem; }
 .profile-info .pid { font-size:.82rem; color:rgba(255,255,255,.6); font-weight:700; margin-top:2px; }
 .profile-info .joined { font-size:.82rem; color:rgba(255,255,255,.5); margin-top:2px; }
@@ -309,7 +310,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .nickname-hint { font-size:.82rem; color:#aaa; margin-bottom:20px; }
 .badge-pro { background:linear-gradient(135deg,#fff8e1,#fff3cd); color:#8a6500; border:1.5px solid var(--accent3); border-radius:12px; padding:2px 10px; font-size:.75rem; font-weight:800; }
 
-.toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(100px); background:var(--ink); color:#fff; padding:11px 22px; border-radius:30px; font-weight:700; font-size:.95rem; z-index:200; transition:transform .4s; pointer-events:none; white-space:nowrap; }
+.toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(100px); background:var(--ink); color:#fff; padding:11px 22px; border-radius:30px; font-weight:700; font-size:.95rem; z-index:200; transition:transform .4s; pointer-events:none !important; white-space:nowrap; }
 
 @media(max-width:500px){
   .fill-header,.fill-body,.story-header,.story-body,.rating-card,.home-card{padding:16px}
@@ -1045,6 +1046,11 @@ function updateAuthUI() {
 
 // ===================== HOME =====================
 function updateHome() {
+  // If user is signed in but proStateCache not loaded yet, show loading state briefly
+  if (currentUser && !proStateCache) {
+    document.getElementById('homeBtns').innerHTML = '<p style="color:#aaa;font-size:.9rem;font-weight:700">Loading your account... ⏳</p>';
+    return;
+  }
   const played = getPlayedIds();
   document.getElementById('statPlayed').textContent = played.length;
   const pro = isPro();
@@ -1089,6 +1095,11 @@ function updateHome() {
 
 // ===================== GAME =====================
 function startGame(theme, backScreen) {
+  if (currentUser && !proStateCache) {
+    toast('Loading your progress... please try again in a moment!');
+    fetchProState().then(() => startGame(theme, backScreen));
+    return;
+  }
   fillBackScreen = backScreen || 'screenHome';
   let pool = isPro() ? MAD_LIBS : MAD_LIBS.slice(0, FREE_LIMIT);
   pool = pool.filter(m => !getPlayedIds().includes(m.id));
@@ -1105,9 +1116,16 @@ function startGame(theme, backScreen) {
 }
 
 function playFromLibrary(id) {
+  // If pro state not loaded yet, wait briefly and retry
+  if (currentUser && !proStateCache) {
+    toast('Loading your progress... please try again in a moment!');
+    fetchProState().then(() => playFromLibrary(id));
+    return;
+  }
   if (!isUnlocked(id)) { openLoginModal(); return; }
   currentML = MAD_LIBS.find(m=>m.id===id); if (!currentML) return;
-  currentAnswers = {}; selectedRating = 0; fillBackScreen = 'screenLibrary';
+  currentAnswers = {}; selectedRating = 0;
+  fillBackScreen = document.querySelector('.screen.active')?.id || 'screenHome';
   buildFillScreen(); showScreen('screenFill');
 }
 
