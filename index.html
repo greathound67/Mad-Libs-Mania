@@ -778,6 +778,7 @@ async function handleSession(session) {
   } else {
     currentProfile = profile;
     closeLoginModal();
+    await fetchProState();
     updateAuthUI();
     updateHome();
     // Sync leaderboard
@@ -845,6 +846,7 @@ async function saveNickname() {
   if (error) { console.error(error); toast('Error saving nickname. Try again.'); return; }
   currentProfile = newProfile;
   closeNicknameModal();
+  await fetchProState();
   await syncLeaderboard();
   updateAuthUI();
   updateHome();
@@ -858,25 +860,70 @@ function modalBgClick(e) { if (e.target === document.getElementById('loginModal'
 
 // ===================== GAME STATE =====================
 let freeState = JSON.parse(localStorage.getItem('ml_free') || '{"played":[]}');
-function proStateKey() { return currentUser ? 'ml_pro_' + currentUser.id : null; }
-function loadProState() {
-  const k = proStateKey();
-  if (!k) return { played:[], ratings:{}, themeScores:{}, themeCounts:{} };
-  return JSON.parse(localStorage.getItem(k) || '{"played":[],"ratings":{},"themeScores":{},"themeCounts":{}}');
-}
-function saveProState(s) { const k = proStateKey(); if (k) localStorage.setItem(k, JSON.stringify(s)); }
-function saveFreeState() { localStorage.setItem('ml_free', JSON.stringify(freeState)); }
-function getPlayedIds() { return isPro() ? loadProState().played : freeState.played; }
+// In-memory pro state cache (synced from Supabase)
+let proStateCache = null;
+
 function isPro() { return !!currentUser && !!currentProfile; }
 function isUnlocked(id) { return isPro() || id < FREE_LIMIT; }
+function saveFreeState() { localStorage.setItem('ml_free', JSON.stringify(freeState)); }
+
+function getPlayedIds() {
+  if (isPro()) return proStateCache ? proStateCache.played : [];
+  return freeState.played;
+}
+
+function loadProState() {
+  return proStateCache || { played:[], ratings:{}, themeScores:{}, themeCounts:{} };
+}
+
+async function fetchProState() {
+  if (!currentUser) return;
+  try {
+    const { data } = await sb.from('user_progress').select('*').eq('email', currentUser.email).single();
+    if (data) {
+      proStateCache = {
+        played: data.played || [],
+        ratings: data.ratings || {},
+        themeScores: data.theme_scores || {},
+        themeCounts: data.theme_counts || {}
+      };
+    } else {
+      // New user — check if localStorage has old data to migrate
+      const oldKey = 'ml_pro_' + currentUser.id;
+      const old = localStorage.getItem(oldKey);
+      if (old) {
+        proStateCache = JSON.parse(old);
+        await pushProState(); // migrate to Supabase
+      } else {
+        proStateCache = { played:[], ratings:{}, themeScores:{}, themeCounts:{} };
+        await pushProState(); // create empty row
+      }
+    }
+  } catch(e) {
+    console.log('fetchProState error:', e);
+    proStateCache = { played:[], ratings:{}, themeScores:{}, themeCounts:{} };
+  }
+}
+
+async function pushProState() {
+  if (!currentUser || !proStateCache) return;
+  try {
+    await sb.from('user_progress').upsert({
+      email: currentUser.email,
+      played: proStateCache.played,
+      ratings: proStateCache.ratings,
+      theme_scores: proStateCache.themeScores,
+      theme_counts: proStateCache.themeCounts
+    }, { onConflict: 'email' });
+  } catch(e) { console.log('pushProState error:', e); }
+}
 
 function markPlayed(id) {
   if (isPro()) {
-    const ps = loadProState();
-    if (!ps.played.includes(id)) {
-      ps.played.push(id);
-      saveProState(ps);
-      updatePlayedLeaderboard(ps.played.length);
+    if (!proStateCache.played.includes(id)) {
+      proStateCache.played.push(id);
+      pushProState();
+      updatePlayedLeaderboard(proStateCache.played.length);
     }
   } else {
     if (!freeState.played.includes(id)) { freeState.played.push(id); saveFreeState(); }
@@ -889,7 +936,7 @@ async function updatePlayedLeaderboard(count) {
     await sb.from('leaderboard_played').upsert({
       email: currentUser.email,
       name: currentProfile.nickname,
-      avatar: currentUser.avatar || '',
+      avatar: currentProfile.avatar || '',
       played: count
     }, { onConflict: 'email' });
   } catch(e) { console.log('LB update error:', e); }
@@ -1048,10 +1095,10 @@ function selectRating(n) {
 }
 function submitRating() {
   if(!selectedRating){toast('Please select a rating first! ⭐');return;}
-  const ps=loadProState();
-  ps.ratings[currentML.id]=selectedRating;
-  currentML.themes.forEach(t=>{ps.themeScores[t]=(ps.themeScores[t]||0)+selectedRating;ps.themeCounts[t]=(ps.themeCounts[t]||0)+1;});
-  saveProState(ps);
+  if(!proStateCache) return;
+  proStateCache.ratings[currentML.id]=selectedRating;
+  currentML.themes.forEach(t=>{proStateCache.themeScores[t]=(proStateCache.themeScores[t]||0)+selectedRating;proStateCache.themeCounts[t]=(proStateCache.themeCounts[t]||0)+1;});
+  pushProState();
   toast(ratingLabels[selectedRating]+' Rating saved!');
   setTimeout(()=>showScreen('screenHome'),1400);
 }
