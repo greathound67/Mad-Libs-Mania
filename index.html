@@ -508,7 +508,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     </div>
     <div id="lbMyRank"></div>
     <div class="lb-search-row">
-      <input class="lb-search-input" id="pidSearch" type="text" placeholder="🔍 Enter Player ID (e.g. 100001)">
+      <input class="lb-search-input" id="pidSearch" type="text" placeholder="🔍 Enter Player ID (e.g. A101)">
       <button class="btn btn-outline btn-sm" onclick="searchByPlayerId()">View Profile</button>
     </div>
     <div class="lb-tabs">
@@ -1941,11 +1941,10 @@ async function buildModPanel() {
   el.innerHTML = '<div class="lb-loading">Loading users... ⏳</div>';
   showScreen('screenMod');
   try {
-    const [profilesRes, flagsRes, bansRes] = await Promise.all([
-      sb.from('profiles').select('*').order('joined_at', {ascending: true}),
-      sb.from('flags').select('*'),
-      sb.from('bans').select('email')
-    ]);
+    // Sequential queries to avoid rate limiting on free tier
+    const profilesRes = await sb.from('profiles').select('*').order('joined_at', {ascending: true});
+    const flagsRes = await sb.from('flags').select('*');
+    const bansRes = await sb.from('bans').select('email');
     const profiles = profilesRes.data || [];
     const flags = flagsRes.data || [];
     const bannedEmails = new Set((bansRes.data || []).map(b => b.email));
