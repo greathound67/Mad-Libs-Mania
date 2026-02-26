@@ -224,6 +224,28 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .lb-my-rank { background:linear-gradient(135deg,#fff8e1,#fffde7); border:2px solid var(--accent3); border-radius:14px; padding:14px 20px; margin-bottom:16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
 .lb-section-desc { font-size:.88rem; color:#888; font-weight:700; margin-bottom:16px; line-height:1.5; }
 
+
+
+/* CONTACT DEVELOPER */
+.contact-btn { position:fixed; top:72px; right:16px; background:var(--card); border:2px solid var(--ink); border-radius:20px; padding:6px 14px; font-size:.82rem; font-weight:800; cursor:pointer; box-shadow:2px 2px 0 var(--ink); z-index:50; transition:all .15s; color:var(--ink); }
+.contact-btn:hover { box-shadow:3px 3px 0 var(--ink); transform:translateY(-1px); }
+.msg-list { display:flex; flex-direction:column; gap:10px; }
+.msg-item { background:var(--card); border:2px solid #e0e0e0; border-radius:14px; padding:14px; cursor:pointer; transition:all .15s; }
+.msg-item:hover { border-color:var(--primary); }
+.msg-item.unread { border-color:var(--accent); background:#fffde7; }
+.msg-item .msg-from { font-weight:800; font-size:.9rem; display:flex; align-items:center; gap:8px; }
+.msg-item .msg-preview { color:#888; font-size:.82rem; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.msg-item .msg-time { font-size:.72rem; color:#aaa; margin-top:4px; }
+.msg-flag { font-size:.72rem; background:#f8d7da; color:#842029; padding:2px 8px; border-radius:8px; font-weight:800; }
+.msg-detail { background:var(--card); border:2px solid #e0e0e0; border-radius:16px; padding:18px; margin-bottom:16px; }
+.msg-reply-box { background:#f9f9f9; border:2px solid #e0e0e0; border-radius:14px; padding:14px; margin-top:14px; }
+.notif-dot { width:8px; height:8px; background:var(--primary); border-radius:50%; display:inline-block; margin-left:4px; }
+/* DAILY MAD LIB */
+.daily-card { background:linear-gradient(135deg,#fff8e1,#fffde7); border:3px solid #ffd700; border-radius:20px; padding:22px; text-align:center; box-shadow:4px 4px 0 #e6b800; margin-bottom:20px; }
+.daily-badge { display:inline-block; background:#ffd700; color:#5a4000; font-weight:900; font-size:.78rem; padding:4px 12px; border-radius:20px; margin-bottom:10px; letter-spacing:.05em; }
+.daily-card h3 { font-family:'Boogaloo',cursive; font-size:1.6rem; margin-bottom:6px; }
+.daily-card .daily-themes { display:flex; gap:4px; justify-content:center; flex-wrap:wrap; margin-bottom:14px; }
+.daily-timer { font-size:.82rem; color:#888; font-weight:700; margin-top:10px; }
 /* MODERATION */
 .mod-btn { background:linear-gradient(135deg,#2b2d42,#3d3f5a); color:#fff; border:2.5px solid var(--ink); border-radius:30px; padding:7px 16px; font-family:'Boogaloo',cursive; font-size:1rem; cursor:pointer; box-shadow:2px 2px 0 var(--ink); transition:all .15s; display:flex; align-items:center; gap:6px; }
 .mod-btn:hover { box-shadow:4px 4px 0 var(--ink); transform:translateY(-1px); }
@@ -518,6 +540,15 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     <div id="lbContent"></div>
   </div>
 
+  <!-- DAILY MAD LIB -->
+  <div class="screen" id="screenDaily">
+    <div class="section-header">
+      <button class="btn btn-outline" onclick="showScreen('screenHome')">← Back</button>
+      <h2>⭐ Daily Mad Lib</h2>
+    </div>
+    <div id="dailyContent"></div>
+  </div>
+
   <!-- MOD PANEL -->
   <div class="screen" id="screenMod">
     <div class="section-header">
@@ -569,6 +600,43 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     <button class="btn btn-outline" onclick="closeFlagConfirm()">Cancel</button>
   </div>
 </div>
+
+<!-- CONTACT DEVELOPER MODAL -->
+<div class="modal-overlay hidden" id="contactModal" onclick="if(event.target===this)closeContactModal()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeContactModal()">✕</button>
+    <div style="font-size:2.5rem;margin-bottom:8px">✉️</div>
+    <h2>Contact Developer</h2>
+    <p style="margin-bottom:16px">Have a question, suggestion, or found a bug? Send a message!</p>
+    <select id="contactType" style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:10px;font-size:.95rem;font-weight:700;margin-bottom:12px;background:var(--card);color:var(--ink)">
+      <option value="suggestion">💡 Suggestion</option>
+      <option value="question">❓ Question</option>
+      <option value="bug">🐛 Bug Report</option>
+      <option value="other">💬 Other</option>
+    </select>
+    <textarea id="contactMessage" placeholder="Write your message here..." style="width:100%;min-height:120px;padding:12px;border:2px solid #e0e0e0;border-radius:12px;font-size:.95rem;font-family:'Nunito',sans-serif;font-weight:600;resize:vertical;box-sizing:border-box;background:var(--card);color:var(--ink)"></textarea>
+    <div style="font-size:.78rem;color:#aaa;margin:8px 0 16px">Sending as: <strong id="contactSendingAs">Anonymous</strong></div>
+    <button class="btn btn-primary" style="width:100%" onclick="sendContactMessage()">Send Message</button>
+  </div>
+</div>
+
+<!-- MESSAGE REPLY MODAL (for mod panel) -->
+<div class="modal-overlay hidden" id="msgReplyModal" onclick="if(event.target===this)closeMsgReply()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeMsgReply()">✕</button>
+    <div id="msgReplyContent"></div>
+  </div>
+</div>
+
+<!-- REPLY NOTIFICATION MODAL -->
+<div class="modal-overlay hidden" id="replyNotifModal" onclick="if(event.target===this)closeReplyNotif()">
+  <div class="modal-box" style="border-color:var(--accent)">
+    <div style="font-size:2.5rem;margin-bottom:8px">📬</div>
+    <h2>Reply from Developer</h2>
+    <div id="replyNotifContent" style="background:#f9f9f9;border-radius:12px;padding:14px;margin:14px 0;font-size:.95rem;line-height:1.6"></div>
+    <button class="btn btn-primary" style="width:100%" onclick="closeReplyNotif()">Got it!</button>
+  </div>
+</div>
 <!-- CHANGE NICKNAME MODAL -->
 <div class="modal-overlay hidden" id="changeNicknameModal" onclick="if(event.target===this)closeChangeNickname()">
   <div class="modal-box">
@@ -603,6 +671,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 </div><!-- end #main -->
 
 <div class="toast" id="toast"></div>
+<button class="contact-btn" onclick="openContactModal()" id="contactBtn">✉️ Contact Dev <span id="contactNotifDot" class="notif-dot hidden"></span></button>
 <div class="badge-notif" id="badgeNotif"><div class="bn-icon" id="badgeNotifIcon">🏅</div><div><div class="bn-text" id="badgeNotifName">Badge Unlocked!</div><div class="bn-sub" id="badgeNotifDesc"></div></div></div>
 
 <!-- LOGIN MODAL -->
@@ -845,6 +914,41 @@ const MAD_LIBS = [
   {id:119,title:"The Last Wilderness Escape",themes:["Nature","Travel","Animals"],template:"Travel writer {name} set out to find the last {adjective} truly wild place on Earth, untouched by {technology}. After {number} days in {adjective2} wilderness, {name} found it: a {adjective3} valley in {country} where {number2} {animal_plural} lived alongside {number3} {adjective4} {animal_plural2}. The only {adjective5} human structure was a {color} sign: 'Welcome to {valley_name}. Please {verb}. Leave only {noun_plural}. Take only {adjective6} memories and possibly a few {noun_plural2}.'",words:[{label:"Writer's Name",ph:"e.g. Rowan",key:"name"},{label:"Adjective",ph:"e.g. genuinely",key:"adjective"},{label:"Technology",ph:"e.g. wifi",key:"technology"},{label:"Number",ph:"e.g. 60",key:"number"},{label:"Adjective",ph:"e.g. uncharted",key:"adjective2"},{label:"Adjective",ph:"e.g. hidden",key:"adjective3"},{label:"Country",ph:"e.g. Bhutan",key:"country"},{label:"Number",ph:"e.g. 400",key:"number2"},{label:"Animal (plural)",ph:"e.g. red pandas",key:"animal_plural"},{label:"Number",ph:"e.g. 200",key:"number3"},{label:"Adjective",ph:"e.g. philosophical",key:"adjective4"},{label:"Animal (plural)",ph:"e.g. snow leopards",key:"animal_plural2"},{label:"Adjective",ph:"e.g. man-made",key:"adjective5"},{label:"Color",ph:"e.g. hand-painted",key:"color"},{label:"Valley Name",ph:"e.g. Valley of Actual Peace",key:"valley_name"},{label:"Verb",ph:"e.g. breathe",key:"verb"},{label:"Noun (plural)",ph:"e.g. footprints",key:"noun_plural"},{label:"Adjective",ph:"e.g. life-changing",key:"adjective6"},{label:"Noun (plural)",ph:"e.g. pine cones",key:"noun_plural2"}]}
 ];
 
+// ===================== DAILY MAD LIBS =====================
+const DAILY_MAD_LIBS = [
+  {id:200,title:"The Morning Commute Disaster",themes:["Daily Life"],words:[{label:"Adjective",ph:"e.g. frantic",key:"adjective"},{label:"Vehicle",ph:"e.g. skateboard",key:"vehicle"},{label:"Verb (past tense)",ph:"e.g. zoomed",key:"verb_past"},{label:"Animal",ph:"e.g. giraffe",key:"animal"},{label:"Exclamation",ph:"e.g. Yikes",key:"exclamation"},{label:"Number",ph:"e.g. 7",key:"number"},{label:"Noun",ph:"e.g. briefcase",key:"noun"},{label:"Adjective 2",ph:"e.g. soggy",key:"adjective2"}],template:"Every morning, {adjective} commuter Alex {verb_past} to the bus stop on their {vehicle}. Today, a {animal} was sitting in their usual seat. '{exclamation}!' Alex yelled, dropping their {noun}. The driver said this happened {number} times last week. Alex arrived {adjective2} and {number} minutes late."},
+  {id:201,title:"The School Cafeteria Incident",themes:["School"],words:[{label:"Food",ph:"e.g. spaghetti",key:"food"},{label:"Adjective",ph:"e.g. mysterious",key:"adjective"},{label:"Student Name",ph:"e.g. Jordan",key:"name"},{label:"Verb (ing)",ph:"e.g. juggling",key:"verb_ing"},{label:"Number",ph:"e.g. 12",key:"number"},{label:"Animal (plural)",ph:"e.g. penguins",key:"animal_plural"},{label:"Adjective 2",ph:"e.g. slippery",key:"adjective2"},{label:"Noun",ph:"e.g. tray",key:"noun"}],template:"The school cafeteria served {adjective} {food} today. {name} was {verb_ing} their {noun} when suddenly {number} {animal_plural} escaped from the science room. The {adjective2} floor made everything worse. The lunch lady just sighed — this was the {number}th time this month."},
+  {id:202,title:"The Surprise Birthday Party",themes:["Celebrations"],words:[{label:"Person's Name",ph:"e.g. Sam",key:"name"},{label:"Adjective",ph:"e.g. enormous",key:"adjective"},{label:"Food (plural)",ph:"e.g. cupcakes",key:"food_plural"},{label:"Verb (past tense)",ph:"e.g. screamed",key:"verb_past"},{label:"Animal",ph:"e.g. llama",key:"animal"},{label:"Number",ph:"e.g. 47",key:"number"},{label:"Color",ph:"e.g. neon green",key:"color"},{label:"Adjective 2",ph:"e.g. confused",key:"adjective2"}],template:"Nobody told {name} about the surprise party. There were {number} {color} balloons and a pile of {adjective} {food_plural}. When {name} walked in, everyone {verb_past}. A {animal} wearing a hat appeared from behind the couch. {name} stood there looking {adjective2} for a full minute before smiling."},
+  {id:203,title:"The Weather Forecast Nobody Expected",themes:["Weather","Funny"],words:[{label:"Adjective",ph:"e.g. bewildered",key:"adjective"},{label:"Meteorologist Name",ph:"e.g. Gerald",key:"name"},{label:"Weather Event",ph:"e.g. tornado of cheese",key:"weather"},{label:"City",ph:"e.g. Toledo",key:"city"},{label:"Number",ph:"e.g. 400",key:"number"},{label:"Adjective 2",ph:"e.g. sticky",key:"adjective2"},{label:"Noun (plural)",ph:"e.g. umbrellas",key:"noun_plural"},{label:"Verb",ph:"e.g. wobble",key:"verb"}],template:"{adjective} meteorologist {name} predicted a {weather} for {city} this weekend. Residents were advised to {verb} indoors and stock up on {number} {noun_plural}. The sky turned {adjective2} by noon. Officials called it the most {adjective2} weather event in {number} years."},
+  {id:204,title:"The Dog Who Learned to Cook",themes:["Animals","Food"],words:[{label:"Dog Name",ph:"e.g. Biscuit",key:"dog_name"},{label:"Dish",ph:"e.g. beef stew",key:"dish"},{label:"Adjective",ph:"e.g. astonishing",key:"adjective"},{label:"Cooking Verb",ph:"e.g. simmered",key:"cook_verb"},{label:"Ingredient",ph:"e.g. cinnamon",key:"ingredient"},{label:"Number",ph:"e.g. 3",key:"number"},{label:"Adjective 2",ph:"e.g. crispy",key:"adjective2"},{label:"Family Member",ph:"e.g. grandma",key:"family"}],template:"{dog_name} the dog discovered cooking by accident. The {adjective} canine {cook_verb} a {dish} using {number} cups of {ingredient}. The result was surprisingly {adjective2}. Even {family} admitted it was better than her recipe. Food critics called it '{adjective2} with a hint of paw.'"},
+  {id:205,title:"The Lost TV Remote",themes:["Daily Life","Funny"],words:[{label:"Adjective",ph:"e.g. desperate",key:"adjective"},{label:"Person",ph:"e.g. Dad",key:"person"},{label:"Number",ph:"e.g. 45",key:"number"},{label:"Hiding Place",ph:"e.g. inside a shoe",key:"hiding_place"},{label:"Pet/Animal",ph:"e.g. the cat",key:"pet"},{label:"Verb (past tense)",ph:"e.g. blamed",key:"verb_past"},{label:"Snack",ph:"e.g. potato chips",key:"snack"},{label:"Adjective 2",ph:"e.g. triumphant",key:"adjective2"}],template:"{adjective} {person} searched {number} minutes for the TV remote. It was found {hiding_place}. {pet} looked suspiciously {adjective2}. Everyone {verb_past} each other. The {snack} eaten during the search totaled {number} handfuls. The remote was sticky. Nobody asked why."},
+  {id:206,title:"The First Day at a New Job",themes:["Work","Funny"],words:[{label:"Name",ph:"e.g. Taylor",key:"name"},{label:"Job Title",ph:"e.g. cheese inspector",key:"job"},{label:"Adjective",ph:"e.g. nervous",key:"adjective"},{label:"Object",ph:"e.g. stapler",key:"object"},{label:"Verb (past tense)",ph:"e.g. accidentally emailed",key:"verb_past"},{label:"Number",ph:"e.g. 200",key:"number"},{label:"Adjective 2",ph:"e.g. legendary",key:"adjective2"},{label:"Coworker Name",ph:"e.g. Patricia",key:"coworker"}],template:"{adjective} {name} arrived for their first day as a {job}. Within {number} minutes, they had {verb_past} {coworker} by mistake. The {object} situation was not mentioned in the employee handbook. By lunch, {name} was already {adjective2}. {coworker} said they'd seen worse. Nobody believed {coworker}."},
+  {id:207,title:"The Haunted Grocery Store",themes:["Halloween","Funny"],words:[{label:"Adjective",ph:"e.g. eerie",key:"adjective"},{label:"Food Item",ph:"e.g. cream cheese",key:"food"},{label:"Ghost Name",ph:"e.g. Gerald",key:"ghost"},{label:"Aisle",ph:"e.g. cereal aisle",key:"aisle"},{label:"Verb (ing)",ph:"e.g. floating",key:"verb_ing"},{label:"Number",ph:"e.g. 6",key:"number"},{label:"Adjective 2",ph:"e.g. haunted",key:"adjective2"},{label:"Customer Reaction",ph:"e.g. screamed",key:"reaction"}],template:"The {adjective} grocery store on Elm Street hired a ghost named {ghost}. Customers in the {aisle} reported {verb_ing} {food} and {adjective2} shopping carts. {number} customers {reaction} and left. The manager offered {number}% off coupons as compensation. {ghost} received employee of the month."},
+  {id:208,title:"The World's Worst Camping Trip",themes:["Adventure","Funny"],words:[{label:"Name",ph:"e.g. Chris",key:"name"},{label:"Adjective",ph:"e.g. overconfident",key:"adjective"},{label:"Animal (plural)",ph:"e.g. raccoons",key:"animal_plural"},{label:"Camping Gear",ph:"e.g. tent",key:"gear"},{label:"Verb (past tense)",ph:"e.g. collapsed",key:"verb_past"},{label:"Food",ph:"e.g. granola bars",key:"food"},{label:"Number",ph:"e.g. 8",key:"number"},{label:"Adjective 2",ph:"e.g. traumatized",key:"adjective2"}],template:"{adjective} camper {name} packed {number} {food} and one {gear}. By night one, {number} {animal_plural} had stolen everything. The {gear} {verb_past} during the first drizzle. {name} returned home {adjective2} after {number} hours. The trip was rated {number} out of 10 on the family disaster scale."},
+  {id:209,title:"The Yoga Class Catastrophe",themes:["Fitness","Funny"],words:[{label:"Name",ph:"e.g. Morgan",key:"name"},{label:"Adjective",ph:"e.g. inflexible",key:"adjective"},{label:"Yoga Pose",ph:"e.g. downward dog",key:"pose"},{label:"Verb (past tense)",ph:"e.g. toppled",key:"verb_past"},{label:"Object",ph:"e.g. water bottle",key:"object"},{label:"Number",ph:"e.g. 11",key:"number"},{label:"Instructor Name",ph:"e.g. Serena",key:"instructor"},{label:"Adjective 2",ph:"e.g. enlightened",key:"adjective2"}],template:"{adjective} {name} attempted their first yoga class with instructor {instructor}. During {pose}, {name} {verb_past} into {number} people and knocked over a {object}. {instructor} remained {adjective2} throughout. {name} was asked to return only when they could touch their {adjective2} toes. They are still practicing."},
+  {id:210,title:"The Online Shopping Mistake",themes:["Technology","Daily Life"],words:[{label:"Person",ph:"e.g. Aunt Linda",key:"person"},{label:"Item Ordered",ph:"e.g. garden gnome",key:"item"},{label:"Number",ph:"e.g. 47",key:"number"},{label:"Adjective",ph:"e.g. bewildered",key:"adjective"},{label:"Family Member",ph:"e.g. nephew",key:"family"},{label:"Verb (past tense)",ph:"e.g. distributed",key:"verb_past"},{label:"Adjective 2",ph:"e.g. festive",key:"adjective2"},{label:"Place",ph:"e.g. the garage",key:"place"}],template:"{person} accidentally ordered {number} {item}s instead of one. The {adjective} delivery arrived in {number} boxes. {person} {verb_past} them to every {family} and neighbor. {place} is now full of {adjective2} {item}s. The return policy expired yesterday. Everyone agrees it was {adjective2}."},
+  {id:211,title:"The Science Fair Disaster",themes:["School","Science"],words:[{label:"Student Name",ph:"e.g. Devon",key:"name"},{label:"Experiment",ph:"e.g. volcano",key:"experiment"},{label:"Adjective",ph:"e.g. ambitious",key:"adjective"},{label:"Chemical/Ingredient",ph:"e.g. baking soda",key:"chemical"},{label:"Verb (past tense)",ph:"e.g. exploded",key:"verb_past"},{label:"Teacher Name",ph:"e.g. Mr. Higgins",key:"teacher"},{label:"Number",ph:"e.g. 30",key:"number"},{label:"Adjective 2",ph:"e.g. colorful",key:"adjective2"}],template:"{adjective} {name} built a {experiment} for the science fair using {number} cups of {chemical}. It {verb_past} {adjective2} liquid onto {teacher} in front of {number} students. {name} received an A for creativity and a note home. {teacher} changed clothes {number} times. The {experiment} won second place anyway."},
+  {id:212,title:"The Neighbourhood Barbecue",themes:["Summer","Food","Funny"],words:[{label:"Neighbour Name",ph:"e.g. Bob",key:"name"},{label:"Food",ph:"e.g. hot dogs",key:"food"},{label:"Adjective",ph:"e.g. competitive",key:"adjective"},{label:"Cooking Disaster",ph:"e.g. caught fire",key:"disaster"},{label:"Number",ph:"e.g. 50",key:"number"},{label:"Adjective 2",ph:"e.g. legendary",key:"adjective2"},{label:"Activity",ph:"e.g. limbo contest",key:"activity"},{label:"Pet",ph:"e.g. the Hendersons' dog",key:"pet"}],template:"{adjective} {name} hosted a barbecue for {number} neighbours. The {food} {disaster} within the first {number} minutes. {pet} ate the backup {food}. An impromptu {activity} broke out by the pool. Despite everything, the event became {adjective2}. {name} has already planned the next one."},
+  {id:213,title:"The Library After Hours",themes:["Mystery","Funny"],words:[{label:"Librarian Name",ph:"e.g. Ms. Perkins",key:"name"},{label:"Adjective",ph:"e.g. peculiar",key:"adjective"},{label:"Book Genre",ph:"e.g. romance novels",key:"genre"},{label:"Creature",ph:"e.g. a tiny dragon",key:"creature"},{label:"Verb (past tense)",ph:"e.g. reorganized",key:"verb_past"},{label:"Number",ph:"e.g. 300",key:"number"},{label:"Adjective 2",ph:"e.g. alphabetically",key:"adjective2"},{label:"Section",ph:"e.g. biography section",key:"section"}],template:"{name} arrived early to find the library {adjective}. All {number} {genre} had been {verb_past} {adjective2}. A {creature} was spotted near the {section}. {name} filed a report. The security footage showed nothing unusual. The {creature} had a library card. This raised more questions."},
+  {id:214,title:"The Elevator That Went Sideways",themes:["Technology","Funny","Adventure"],words:[{label:"Name",ph:"e.g. Priya",key:"name"},{label:"Floor Number",ph:"e.g. 14",key:"floor"},{label:"Adjective",ph:"e.g. baffled",key:"adjective"},{label:"Direction",ph:"e.g. diagonally",key:"direction"},{label:"Stranger Name",ph:"e.g. Gerald",key:"stranger"},{label:"Snack",ph:"e.g. granola bar",key:"snack"},{label:"Number (minutes)",ph:"e.g. 40",key:"number"},{label:"Adjective 2",ph:"e.g. philosophical",key:"adjective2"}],template:"{adjective} {name} pressed {floor} but the elevator moved {direction}. Inside was {stranger}, eating a {snack}. They were stuck for {number} minutes. The conversation turned {adjective2} by minute {number}. Maintenance arrived to find them debating the meaning of {floor}. Both left changed."},
+  {id:215,title:"The Cat's Job Interview",themes:["Animals","Funny","Work"],words:[{label:"Cat Name",ph:"e.g. Whiskers",key:"cat_name"},{label:"Job",ph:"e.g. accountant",key:"job"},{label:"Adjective",ph:"e.g. unimpressed",key:"adjective"},{label:"Interviewer Name",ph:"e.g. Dave",key:"interviewer"},{label:"Skill",ph:"e.g. knocking things off tables",key:"skill"},{label:"Number",ph:"e.g. 9",key:"number"},{label:"Adjective 2",ph:"e.g. overqualified",key:"adjective2"},{label:"Office Supply",ph:"e.g. keyboard",key:"office_supply"}],template:"{cat_name} applied for a position as {job}. {interviewer} found the {adjective} feline sitting on the {office_supply}. When asked about experience, {cat_name} listed {skill} as their primary qualification. {interviewer} offered {number} lives of job security. {cat_name} accepted, knocked the contract off the desk, and looked {adjective2}."},
+  {id:216,title:"The Haunted Autocorrect",themes:["Technology","Funny"],words:[{label:"Name",ph:"e.g. Jamie",key:"name"},{label:"Intended Word",ph:"e.g. meeting",key:"intended"},{label:"Autocorrected Word",ph:"e.g. meowing",key:"autocorrect"},{label:"Recipient",ph:"e.g. the CEO",key:"recipient"},{label:"Adjective",ph:"e.g. mortified",key:"adjective"},{label:"Number",ph:"e.g. 15",key:"number"},{label:"Response",ph:"e.g. a single question mark",key:"response"},{label:"Adjective 2",ph:"e.g. legendary",key:"adjective2"}],template:"{name} texted {recipient} about the {intended} but autocorrect changed it to {autocorrect}. {recipient} responded with {response}. {adjective} {name} sent {number} corrections. The thread became {adjective2} in company history. IT was called. Nobody fixed the autocorrect. It happened again the next day."},
+  {id:217,title:"The Unexpected Talent Show Winner",themes:["Music","Funny","Celebrations"],words:[{label:"Name",ph:"e.g. Eugene",key:"name"},{label:"Talent",ph:"e.g. beatboxing with a straw",key:"talent"},{label:"Adjective",ph:"e.g. unlikely",key:"adjective"},{label:"Audience Reaction",ph:"e.g. gasped",key:"reaction"},{label:"Judge Name",ph:"e.g. Francesca",key:"judge"},{label:"Number",ph:"e.g. 10",key:"number"},{label:"Prize",ph:"e.g. a coupon for free soup",key:"prize"},{label:"Adjective 2",ph:"e.g. unstoppable",key:"adjective2"}],template:"{adjective} {name} signed up for the talent show at the last minute. Their act involved {talent}. The audience {reaction}. Judge {judge} gave {number} out of {number}. {name} won {prize} and a standing ovation. Three talent agencies called the next morning. {name} remains {adjective2}."},
+  {id:218,title:"The Penguin in the Office",themes:["Animals","Work","Funny"],words:[{label:"Penguin Name",ph:"e.g. Reginald",key:"penguin_name"},{label:"Department",ph:"e.g. accounting",key:"department"},{label:"Adjective",ph:"e.g. professional",key:"adjective"},{label:"Office Task",ph:"e.g. filing reports",key:"task"},{label:"Coworker Name",ph:"e.g. Linda",key:"coworker"},{label:"Number",ph:"e.g. 3",key:"number"},{label:"Adjective 2",ph:"e.g. indispensable",key:"adjective2"},{label:"Fish Type",ph:"e.g. sardines",key:"fish"}],template:"{adjective} penguin {penguin_name} joined the {department} team on Monday. They excelled at {task} and brought {fish} to every meeting. {coworker} said {penguin_name} was the best hire in {number} years. HR had {number} questions. Nobody answered them. {penguin_name} became {adjective2} by Wednesday."},
+  {id:219,title:"The GPS That Had Opinions",themes:["Technology","Travel","Funny"],words:[{label:"Driver Name",ph:"e.g. Marcus",key:"name"},{label:"Destination",ph:"e.g. the grocery store",key:"destination"},{label:"GPS Opinion",ph:"e.g. recalculating your life choices",key:"gps_comment"},{label:"Adjective",ph:"e.g. existential",key:"adjective"},{label:"Wrong Turn Location",ph:"e.g. a cornfield",key:"location"},{label:"Number",ph:"e.g. 6",key:"number"},{label:"Adjective 2",ph:"e.g. philosophical",key:"adjective2"},{label:"New Destination",ph:"e.g. self-discovery",key:"new_dest"}],template:"{name} asked the GPS for directions to {destination}. Instead, it began {gps_comment}. After {number} wrong turns through {location}, the GPS announced it was redirecting to {new_dest}. {name} sat in the car feeling {adjective} for {number} minutes. The grocery store was across the street. The GPS called it {adjective2}."},
+];
+
+// Get today's daily mad lib (cycles through all 20, one per day, ~monthly rotation)
+function getTodaysDailyML() {
+  const start = new Date('2025-01-01');
+  const today = new Date();
+  const dayNum = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+  const idx = dayNum % DAILY_MAD_LIBS.length;
+  return DAILY_MAD_LIBS[idx];
+}
+
+
+
 // ===================== SUPABASE =====================
 const SUPABASE_URL = 'https://jmqphaoouagnmiwpuabr.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptcXBoYW9vdWFnbm1pd3B1YWJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4ODk5MTksImV4cCI6MjA4NzQ2NTkxOX0.0lSeox5X2uaycyKD77HahEmgLGEv1AEH2y7CGvGS4AQ';
@@ -995,6 +1099,7 @@ async function handleSession(session) {
       // Background tasks
       syncLeaderboard().catch(e => console.log('Sync error:', e));
       checkBanAndWarnings().catch(e => console.log('Ban check error:', e));
+      checkUnreadReplies().catch(e => console.log('Reply check error:', e));
 
       toast('🎉 Welcome back, ' + (profile.nickname || currentUser.name.split(' ')[0]) + '!');
     }
@@ -1210,6 +1315,7 @@ function showScreen(id) {
   if (id === 'screenRecommended') buildRecommended();
   if (id === 'screenLeaderboard') buildLeaderboard();
   if (id === 'screenPopular') buildPopular();
+  if (id === 'screenDaily') buildDailyScreen();
   if (id === 'screenMod') { document.getElementById('modPanelContent').innerHTML='<div class="lb-loading">Loading... ⏳</div>'; buildModPanel(); }
   window.scrollTo(0, 0);
 }
@@ -1291,6 +1397,7 @@ function updateHome() {
   </div>` : '';
 
   document.getElementById('homeBtns').innerHTML = pro ? `
+    <button class="btn btn-primary" style="background:#ffd700;color:#5a4000;border-color:#e6b800" onclick="showScreen('screenDaily')">⭐ Daily Mad Lib</button>
     <button class="btn btn-primary" onclick="startGame()">🎲 Play Random!</button>
     <button class="btn btn-green" onclick="showScreen('screenRecommended')">✨ Recommended</button>
     <button class="btn btn-primary" style="background:#ff6b35" onclick="showScreen('screenPopular')">🔥 Popular</button>
@@ -1298,7 +1405,9 @@ function updateHome() {
     <button class="btn btn-secondary" onclick="showScreen('screenPrefs')">📊 Preferences</button>
     <button class="btn btn-outline" onclick="showScreen('screenLeaderboard')">🏆 Leaderboard</button>
     <button class="btn btn-outline" onclick="showScreen('screenHistory')">📜 History</button>` : `
+    <button class="btn btn-primary" style="background:#ffd700;color:#5a4000;border-color:#e6b800" onclick="showScreen('screenDaily')">⭐ Daily Mad Lib</button>
     <button class="btn btn-primary" onclick="startGame()">🎲 Play Random!</button>
+    <button class="btn btn-primary" style="background:#ff6b35" onclick="showScreen('screenPopular')">🔥 Popular</button>
     <button class="btn btn-blue" onclick="showScreen('screenLibrary')">📚 Library</button>
     <button class="btn btn-outline" onclick="showScreen('screenLeaderboard')">🏆 Leaderboard</button>
     <button class="btn btn-outline" onclick="showScreen('screenHistory')">📜 History</button>`;
@@ -1970,6 +2079,227 @@ async function saveAvatarChoice() {
   }
 }
 
+
+
+
+// ===================== CONTACT DEVELOPER =====================
+function openContactModal() {
+  document.getElementById('contactSendingAs').textContent = currentProfile?.nickname || currentUser?.email || 'Anonymous';
+  document.getElementById('contactMessage').value = '';
+  document.getElementById('contactModal').classList.remove('hidden');
+}
+function closeContactModal() {
+  document.getElementById('contactModal').classList.add('hidden');
+}
+
+async function sendContactMessage() {
+  const msg = document.getElementById('contactMessage').value.trim();
+  const type = document.getElementById('contactType').value;
+  if (!msg) { toast('Please write a message first!'); return; }
+  if (msg.length < 5) { toast('Message too short!'); return; }
+  try {
+    await sb.from('messages').insert({
+      sender_email: currentUser?.email || null,
+      sender_nickname: currentProfile?.nickname || null,
+      type,
+      message: msg,
+      sent_at: new Date().toISOString(),
+      read: false,
+      flagged: false
+    });
+    closeContactModal();
+    toast('✅ Message sent! Thanks for reaching out.');
+  } catch(e) { console.error(e); toast('Could not send. Try again.'); }
+}
+
+// Check for unread replies on login
+async function checkUnreadReplies() {
+  if (!currentUser) return;
+  try {
+    const { data } = await sb.from('messages')
+      .select('id, reply, reply_at, message, type')
+      .eq('sender_email', currentUser.email)
+      .not('reply', 'is', null)
+      .eq('reply_read', false)
+      .maybeSingle();
+    if (data) {
+      showReplyNotif(data);
+    }
+  } catch(e) { /* silent */ }
+  // Also check for unread dot
+  updateContactDot();
+}
+
+async function updateContactDot() {
+  if (!currentUser) return;
+  try {
+    const { data } = await sb.from('messages')
+      .select('id')
+      .eq('sender_email', currentUser.email)
+      .not('reply', 'is', null)
+      .eq('reply_read', false)
+      .limit(1);
+    const dot = document.getElementById('contactNotifDot');
+    if (dot) dot.classList.toggle('hidden', !(data && data.length > 0));
+  } catch(e) { /* silent */ }
+}
+
+function showReplyNotif(msg) {
+  document.getElementById('replyNotifContent').innerHTML =
+    `<div style="color:#888;font-size:.78rem;margin-bottom:6px">In reply to your ${msg.type}: "${escHtml((msg.message||'').slice(0,60))}${msg.message?.length>60?'...':''}"</div>
+     <div>${escHtml(msg.reply)}</div>`;
+  document.getElementById('replyNotifModal').classList.remove('hidden');
+  // Mark as read
+  sb.from('messages').update({ reply_read: true }).eq('id', msg.id).then(() => {
+    const dot = document.getElementById('contactNotifDot');
+    if (dot) dot.classList.add('hidden');
+  });
+}
+function closeReplyNotif() {
+  document.getElementById('replyNotifModal').classList.add('hidden');
+}
+
+// ===== MOD: Messages section =====
+let currentMsgId = null;
+
+async function buildModMessages() {
+  const el = document.getElementById('modPanelContent');
+  el.innerHTML = '<div class="lb-loading">Loading messages... ⏳</div>';
+  try {
+    const { data: msgs, error } = await sb.from('messages').select('*').order('sent_at', {ascending: false});
+    if (error) throw error;
+    if (!msgs || !msgs.length) { el.innerHTML = '<div class="lb-empty">No messages yet.</div>'; return; }
+    el.innerHTML = `
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="btn btn-outline btn-sm" onclick="buildModPanel()">👥 Users</button>
+        <button class="btn btn-primary btn-sm" onclick="buildModMessages()">✉️ Messages</button>
+      </div>
+      <div class="msg-list">${msgs.map(m => `
+        <div class="msg-item${m.reply && !m.reply_read ? ' unread' : ''}" onclick="openMsgDetail(${m.id})">
+          <div class="msg-from">
+            ${m.sender_nickname ? `<span>${escHtml(m.sender_nickname)}</span>` : '<span style="color:#aaa">Anonymous</span>'}
+            <span style="font-size:.72rem;background:#e0e0e0;padding:2px 8px;border-radius:8px;font-weight:700">${m.type}</span>
+            ${m.flagged ? '<span class="msg-flag">🚩 Flagged</span>' : ''}
+            ${m.reply && !m.reply_read ? '<span style="font-size:.72rem;background:#fff3cd;padding:2px 8px;border-radius:8px;color:#856404;font-weight:800">Awaiting read</span>' : ''}
+            ${m.reply ? '<span style="font-size:.72rem;background:#d4edda;padding:2px 8px;border-radius:8px;color:#155724;font-weight:800">✓ Replied</span>' : ''}
+          </div>
+          <div class="msg-preview">${escHtml((m.message||'').slice(0,80))}</div>
+          <div class="msg-time">${m.sent_at ? new Date(m.sent_at).toLocaleString() : ''}</div>
+        </div>`).join('')}
+      </div>`;
+  } catch(e) { console.error(e); el.innerHTML = '<div class="lb-empty">Could not load messages.</div>'; }
+}
+
+async function openMsgDetail(id) {
+  currentMsgId = id;
+  const el = document.getElementById('modPanelContent');
+  el.innerHTML = '<div class="lb-loading">Loading... ⏳</div>';
+  try {
+    const { data: m } = await sb.from('messages').select('*').eq('id', id).single();
+    if (!m) { buildModMessages(); return; }
+    // Mark as read
+    await sb.from('messages').update({ read: true }).eq('id', id);
+    el.innerHTML = `
+      <button class="btn btn-outline btn-sm" onclick="buildModMessages()" style="margin-bottom:16px">← Back to Messages</button>
+      <div class="msg-detail">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <strong>${m.sender_nickname ? escHtml(m.sender_nickname) : 'Anonymous'}</strong>
+            ${m.sender_email ? `<span style="color:#aaa;font-size:.8rem"> (${escHtml(m.sender_email)})</span>` : ''}
+            <span style="display:block;font-size:.72rem;color:#aaa">${new Date(m.sent_at).toLocaleString()} • ${m.type}</span>
+          </div>
+          <div style="display:flex;gap:6px">
+            ${!m.flagged && m.sender_email ? `<button class="mod-action-btn danger" onclick="flagMessage(${m.id})">🚩 Flag</button>` : ''}
+            ${m.flagged ? '<span class="msg-flag">🚩 Flagged</span>' : ''}
+          </div>
+        </div>
+        <div style="font-size:.95rem;line-height:1.7;background:#f9f9f9;border-radius:10px;padding:14px">${escHtml(m.message)}</div>
+        ${m.reply ? `<div class="msg-reply-box"><div style="font-size:.78rem;font-weight:800;color:#888;margin-bottom:6px">YOUR REPLY:</div><div>${escHtml(m.reply)}</div></div>` : ''}
+      </div>
+      ${!m.reply && m.sender_email ? `
+        <div style="background:var(--card);border:2px solid #e0e0e0;border-radius:14px;padding:16px">
+          <div style="font-weight:800;margin-bottom:10px">Reply to this message:</div>
+          <textarea id="replyText" placeholder="Write your reply..." style="width:100%;min-height:100px;padding:10px;border:2px solid #e0e0e0;border-radius:10px;font-size:.9rem;font-family:'Nunito',sans-serif;resize:vertical;box-sizing:border-box;background:var(--bg);color:var(--ink)"></textarea>
+          <button class="btn btn-primary" style="margin-top:10px;width:100%" onclick="sendReply(${m.id}, '${escHtml(m.sender_email || '')}')">Send Reply</button>
+        </div>` : m.reply ? '<div style="color:#aaa;font-size:.85rem;text-align:center;padding:10px">Reply already sent.</div>' : '<div style="color:#aaa;font-size:.85rem;text-align:center;padding:10px">Anonymous message — cannot reply.</div>'}`;
+  } catch(e) { console.error(e); buildModMessages(); }
+}
+
+async function sendReply(msgId, senderEmail) {
+  const reply = document.getElementById('replyText')?.value?.trim();
+  if (!reply) { toast('Write a reply first!'); return; }
+  try {
+    await sb.from('messages').update({
+      reply,
+      reply_at: new Date().toISOString(),
+      reply_read: false
+    }).eq('id', msgId);
+    toast('✅ Reply sent!');
+    openMsgDetail(msgId);
+  } catch(e) { console.error(e); toast('Could not send reply.'); }
+}
+
+async function flagMessage(msgId) {
+  try {
+    await sb.from('messages').update({ flagged: true }).eq('id', msgId);
+    toast('🚩 Message flagged.');
+    openMsgDetail(msgId);
+  } catch(e) { console.error(e); }
+}
+// ===================== DAILY MAD LIB =====================
+let dailyML = null;
+
+function buildDailyScreen() {
+  dailyML = getTodaysDailyML();
+  const el = document.getElementById('dailyContent');
+  // Check if already played today
+  const todayKey = 'daily_played_' + new Date().toISOString().slice(0,10);
+  const alreadyPlayed = localStorage.getItem(todayKey);
+
+  // Calculate time until next daily
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setHours(24,0,0,0);
+  const hoursLeft = Math.floor((tomorrow - now) / 3600000);
+  const minsLeft = Math.floor(((tomorrow - now) % 3600000) / 60000);
+
+  el.innerHTML = `
+    <div class="daily-card">
+      <div class="daily-badge">⭐ TODAY'S DAILY</div>
+      <h3>${escHtml(dailyML.title)}</h3>
+      <div class="daily-themes">${dailyML.themes.map(themePill).join('')}</div>
+      <div style="color:#888;font-size:.88rem;margin-bottom:16px">${dailyML.words.length} blanks to fill</div>
+      ${alreadyPlayed
+        ? `<div style="background:#e8f5e9;border:2px solid #81c784;border-radius:12px;padding:12px;margin-bottom:14px;font-weight:700;color:#2e7d32">✅ You already played today's story!</div>
+           <button class="btn btn-outline" onclick="startDailyML()">Play Again</button>`
+        : `<button class="btn btn-primary" style="width:100%;font-size:1.1rem" onclick="startDailyML()">▶ Play Today's Story</button>`
+      }
+      <div class="daily-timer">🕐 New story in ${hoursLeft}h ${minsLeft}m</div>
+    </div>
+    <div style="background:var(--card);border:2px solid #e0e0e0;border-radius:16px;padding:18px;text-align:center">
+      <div style="font-size:2rem;margin-bottom:8px">📅</div>
+      <div style="font-weight:800;font-size:1rem;margin-bottom:6px">A New Story Every Day</div>
+      <div style="color:#888;font-size:.85rem">Daily mad libs rotate through 20 unique stories. Come back tomorrow for a new one!</div>
+    </div>`;
+}
+
+function startDailyML() {
+  if (!dailyML) dailyML = getTodaysDailyML();
+  currentML = dailyML;
+  currentAnswers = {};
+  selectedRating = 0;
+  fillBackScreen = 'screenDaily';
+  // Mark as daily so we skip rating screen and don't add to library stats
+  currentML._isDaily = true;
+  buildFillScreen();
+  showScreen('screenFill');
+}
+
+// Track daily played in localStorage
+function markDailyPlayed() {
+  const todayKey = 'daily_played_' + new Date().toISOString().slice(0,10);
+  localStorage.setItem(todayKey, '1');
+}
 
 // ===================== MODERATION =====================
 let flagTargetEmail = null;
