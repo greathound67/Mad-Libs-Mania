@@ -873,6 +873,7 @@ const SPECIAL_BADGES = [
 const ALL_BADGES = [...NORMAL_BADGES, ...SPECIAL_BADGES];
 
 let _prevEarnedBadgeIds = new Set();
+let _handlingSession = false;
 
 function checkAndNotifyBadges() {
   if (!isPro() || !proStateCache) return;
@@ -917,18 +918,25 @@ let currentUser = null;
 let currentProfile = null;
 
 async function initAuth() {
+  console.log('[Auth] initAuth started');
+
   // Check existing session first
-  const { data: { session } } = await sb.auth.getSession();
+  const { data: { session }, error } = await sb.auth.getSession();
+  console.log('[Auth] getSession result:', session ? 'HAS SESSION' : 'NO SESSION', error || '');
+  
   if (session) {
+    console.log('[Auth] calling handleSession from getSession');
     await handleSession(session);
     if (window.location.hash.includes('access_token')) {
       history.replaceState(null, '', window.location.pathname);
     }
   }
 
-  // Listen for future sign-ins (e.g. after OAuth redirect on fresh tab)
+  // Listen for future sign-ins
   sb.auth.onAuthStateChange(async (event, session) => {
+    console.log('[Auth] onAuthStateChange:', event, session ? 'HAS SESSION' : 'NO SESSION', 'currentUser:', !!currentUser);
     if (event === 'SIGNED_IN' && session && !currentUser) {
+      console.log('[Auth] calling handleSession from listener');
       await handleSession(session);
       if (window.location.hash.includes('access_token')) {
         history.replaceState(null, '', window.location.pathname);
@@ -941,7 +949,8 @@ async function initAuth() {
 }
 
 async function handleSession(session) {
-  if (_handlingSession) return;
+  console.log("[Auth] handleSession called, _handlingSession:", _handlingSession);
+  if (_handlingSession) { console.log("[Auth] blocked by _handlingSession!"); return; }
   _handlingSession = true;
   try {
     const u = session.user;
