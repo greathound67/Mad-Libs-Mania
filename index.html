@@ -216,6 +216,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .lb-avatar img { width:100%; height:100%; object-fit:cover; }
 .lb-name { font-weight:800; font-size:.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .lb-you-tag { font-size:.65rem; font-weight:800; background:var(--accent3); color:var(--ink); border-radius:8px; padding:1px 6px; margin-left:5px; flex-shrink:0; }
+.lb-mod-badge { font-size:.65rem; font-weight:800; background:linear-gradient(135deg,#9b5de5,#6a3db5); color:#fff; border-radius:20px; padding:2px 8px; white-space:nowrap; }
 .lb-og-badge { font-size:.65rem; font-weight:800; background:linear-gradient(135deg,#FFD700,#FFA500); color:#fff; border-radius:8px; padding:1px 7px; margin-left:4px; flex-shrink:0; }
 .lb-score { font-family:'Boogaloo',cursive; font-size:1.3rem; color:var(--secondary); text-align:right; }
 .lb-score span { font-size:.72rem; font-weight:700; color:#aaa; display:block; font-family:'Nunito',sans-serif; }
@@ -267,6 +268,9 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .mod-action-btn.danger:hover { background:#dc3545; color:#fff; }
 .banned-banner { background:#f8d7da; border:2px solid #f5c2c7; border-radius:14px; padding:14px 18px; margin-bottom:16px; font-weight:700; font-size:.9rem; color:#842029; display:flex; align-items:center; gap:10px; }
 .warned-modal .modal-box { border-color:#ffc107; }
+.profile-bio { background:#f9f9f9; border:2px solid #e0e0e0; border-radius:14px; padding:14px 16px; margin:14px 0; font-size:.92rem; line-height:1.6; color:#444; }
+.profile-bio-edit { width:100%; min-height:80px; padding:12px; border:2px solid #e0e0e0; border-radius:12px; font-size:.92rem; font-family:'Nunito',sans-serif; font-weight:600; resize:vertical; box-sizing:border-box; background:var(--card); color:var(--ink); }
+.bio-char-count { font-size:.75rem; color:#aaa; text-align:right; margin-top:4px; }
 /* POPULAR */
 .pop-tabs { display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
 .pop-tab { padding:8px 20px; border-radius:30px; font-family:'Boogaloo',cursive; font-size:1.05rem; cursor:pointer; border:2.5px solid var(--ink); background:var(--card); color:var(--ink); transition:all .15s; box-shadow:2px 2px 0 var(--ink); }
@@ -580,7 +584,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     <div id="warnedNicknameSection" class="hidden">
       <p style="font-weight:800;margin-bottom:8px">Choose a new nickname:</p>
       <input class="nickname-input" id="warnedNicknameInput" type="text" placeholder="New nickname..." maxlength="20">
-      <div class="nickname-hint">2–20 characters, letters and numbers only</div>
+      <div class="nickname-hint">2–20 characters · letters, numbers, _ - . allowed</div>
     </div>
     <button class="btn btn-primary" style="width:100%" id="warnedOkBtn" onclick="dismissWarning()">I Understand</button>
   </div>
@@ -639,6 +643,20 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     <button class="btn btn-primary" style="width:100%" onclick="closeReplyNotif()">Got it!</button>
   </div>
 </div>
+
+<!-- EDIT BIO MODAL -->
+<div class="modal-overlay hidden" id="editBioModal" onclick="if(event.target===this)closeEditBio()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeEditBio()">✕</button>
+    <div style="font-size:2.5rem;margin-bottom:8px">✍️</div>
+    <h2>Edit Bio</h2>
+    <p>Tell the community about yourself! (2–300 characters)</p>
+    <textarea class="profile-bio-edit" id="bioInput" maxlength="300" placeholder="Write something about yourself..." oninput="updateBioCount()"></textarea>
+    <div class="bio-char-count"><span id="bioCharCount">0</span>/300</div>
+    <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="saveBio()">Save Bio</button>
+    <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="saveBio(true)">Remove Bio</button>
+  </div>
+</div>
 <!-- CHANGE NICKNAME MODAL -->
 <div class="modal-overlay hidden" id="changeNicknameModal" onclick="if(event.target===this)closeChangeNickname()">
   <div class="modal-box">
@@ -647,7 +665,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     <h2>Change Nickname</h2>
     <p>Choose a new nickname. This will update everywhere — leaderboard, profile, and all records.</p>
     <input class="nickname-input" id="changeNicknameInput" type="text" placeholder="New nickname..." maxlength="20">
-    <div class="nickname-hint">2–20 characters, letters and numbers only</div>
+    <div class="nickname-hint">2–20 characters · letters, numbers, _ - . allowed</div>
     <div id="changeNicknameConfirm" class="hidden" style="background:#fff3cd;border:2px solid #ffc107;border-radius:12px;padding:14px;margin-bottom:16px;font-size:.9rem;font-weight:700">
       ⚠️ Are you sure? Your nickname will change everywhere and your old name won't be reserved.
       <div style="display:flex;gap:10px;margin-top:12px;justify-content:center">
@@ -673,7 +691,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 </div><!-- end #main -->
 
 <div class="toast" id="toast"></div>
-<button class="contact-btn" onclick="openContactModal()" id="contactBtn">✉️ Contact Dev <span id="contactNotifDot" class="notif-dot hidden"></span></button>
+<button class="contact-btn" onclick="openContactModal()" id="contactBtn" style="display:none">✉️ Contact Dev <span id="contactNotifDot" class="notif-dot hidden"></span></button>
 <div class="badge-notif" id="badgeNotif"><div class="bn-icon" id="badgeNotifIcon">🏅</div><div><div class="bn-text" id="badgeNotifName">Badge Unlocked!</div><div class="bn-sub" id="badgeNotifDesc"></div></div></div>
 
 <!-- LOGIN MODAL -->
@@ -706,7 +724,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     <h2>Choose a Nickname!</h2>
     <p>This is what others will see on the leaderboard. Your real name stays private.</p>
     <input class="nickname-input" id="nicknameInput" type="text" placeholder="e.g. MadLibsKing42" maxlength="20">
-    <div class="nickname-hint">2–20 characters, letters and numbers only</div>
+    <div class="nickname-hint">2–20 characters · letters, numbers, _ - . allowed</div>
     <button class="btn btn-primary" style="width:100%" onclick="saveNickname()">Let's Go! 🚀</button>
   </div>
 </div>
@@ -1124,6 +1142,7 @@ async function syncLeaderboard() {
       email: currentUser.email,
       name: currentProfile.nickname,
       avatar: currentProfile.avatar || '',
+      is_mod: currentProfile.is_mod || false,
     }, { onConflict: 'email' });
     const totalPlays = ps.totalPlays || ps.played.length;
     if (totalPlays > 0) {
@@ -1131,7 +1150,8 @@ async function syncLeaderboard() {
         email: currentUser.email,
         name: currentProfile.nickname,
         avatar: currentProfile.avatar || '',
-        played: totalPlays
+        played: totalPlays,
+        is_mod: currentProfile.is_mod || false,
       }, { onConflict: 'email' });
     }
   } catch(e) { console.log('Sync error:', e); }
@@ -1310,6 +1330,10 @@ function toast(msg) {
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  // Hide contact button on game screens
+  const gameScreens = ['screenFill','screenStory','screenRating'];
+  const contactBtn = document.getElementById('contactBtn');
+  if (contactBtn) contactBtn.style.display = gameScreens.includes(id) ? 'none' : '';
   if (id === 'screenHistory') buildHistory();
   if (id === 'screenPrefs') buildPrefs();
   if (id === 'screenHome') updateHome();
@@ -1740,7 +1764,9 @@ function renderTable(entries,myIdx,getScore){
         <div class="lb-user">
           <div class="lb-avatar">${e.avatar && e.avatar.length<=4 ? e.avatar : '🎭'}</div>
           <span class="lb-name">${escHtml(e.name||'Anonymous')}</span>
-          ${isMe?'<span class="lb-you-tag">YOU</span>':''}${extra}
+          ${isMe?'<span class="lb-you-tag">YOU</span>':''}
+          ${e.is_mod?'<span class="lb-mod-badge">🛡️ MOD</span>':''}
+          ${extra}
         </div>${score}</div>`;
     }).join('')}</div>`;
 }
@@ -1801,9 +1827,14 @@ async function viewProfileData(profile, backScreen){
           <h2 id="profileNicknameDisplay" ${isOwn ? `onclick="openChangeNickname()" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:4px" title="Click to change nickname"` : ''}>${escHtml(profile.nickname||'Anonymous')} ${isOwn ? '<span style="font-size:1rem;opacity:.5">✏️</span>' : ''}</h2>
           <div class="pid">Player ID: ${escHtml(profile.player_id||'—')}</div>
           <div class="joined">Joined ${joined}</div>
-          ${isOg?'<div style="margin-top:6px"><span class="lb-og-badge" style="font-size:.8rem;padding:3px 10px">👑 OG Member</span></div>':''}
+          <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+            ${isOg?'<span class="lb-og-badge" style="font-size:.8rem;padding:3px 10px">👑 OG Member</span>':''}
+            ${profile.is_mod?'<span class="lb-mod-badge" style="font-size:.8rem;padding:3px 10px">🛡️ Moderator</span>':''}
+          </div>
         </div>
       </div>
+      ${profile.bio ? `<div class="profile-bio">${escHtml(profile.bio)}</div>` : isOwn ? '<div class="profile-bio" style="color:#bbb;font-style:italic">No bio yet — click Edit Bio to add one!</div>' : ''}
+      ${isOwn ? `<div style="margin-bottom:14px"><button class="btn btn-outline btn-sm" onclick="openEditBio()">✏️ Edit Bio</button></div>` : ''}
       <div class="profile-body">
         <div class="profile-stats">
           <div class="profile-stat"><div class="ps-num">${played}</div><div class="ps-label">Stories Played</div></div>
@@ -1986,6 +2017,32 @@ function nextPrefix(prefix) {
   return 'A' + chars.join('');
 }
 
+
+// ===================== PROFILE BIO =====================
+function openEditBio() {
+  const bio = currentProfile?.bio || '';
+  document.getElementById('bioInput').value = bio;
+  document.getElementById('bioCharCount').textContent = bio.length;
+  document.getElementById('editBioModal').classList.remove('hidden');
+}
+function closeEditBio() {
+  document.getElementById('editBioModal').classList.add('hidden');
+}
+function updateBioCount() {
+  const len = document.getElementById('bioInput').value.length;
+  document.getElementById('bioCharCount').textContent = len;
+}
+async function saveBio(remove = false) {
+  const bio = remove ? null : document.getElementById('bioInput').value.trim();
+  if (!remove && bio && bio.length < 2) { toast('Bio must be at least 2 characters!'); return; }
+  try {
+    await sb.from('profiles').update({ bio: bio || null }).eq('email', currentUser.email);
+    if (currentProfile) currentProfile.bio = bio || null;
+    closeEditBio();
+    viewProfileData(currentProfile, document.getElementById('profileBackBtn').dataset.back || 'screenHome');
+    toast(remove ? '✅ Bio removed.' : '✅ Bio saved!');
+  } catch(e) { console.error(e); toast('Could not save bio.'); }
+}
 // ===================== CHANGE NICKNAME =====================
 function openChangeNickname() {
   document.getElementById('changeNicknameInput').value = currentProfile?.nickname || '';
@@ -1998,7 +2055,7 @@ function closeChangeNickname() {
 }
 async function previewChangeNickname() {
   const raw = document.getElementById('changeNicknameInput').value.trim();
-  if (!/^[a-zA-Z0-9]{2,20}$/.test(raw)) { toast('2–20 characters, letters and numbers only!'); return; }
+  if (!/^[a-zA-Z0-9_\-\.]{2,20}$/.test(raw)) { toast('2–20 characters. Letters, numbers, _ - . allowed.'); return; }
   if (raw === currentProfile.nickname) { toast('That is already your nickname!'); return; }
   // Check uniqueness
   const { data: existing } = await sb.from('profiles').select('email').eq('nickname', raw).maybeSingle();
@@ -2276,7 +2333,7 @@ function buildDailyScreen() {
   dailyML = getTodaysDailyML();
   const el = document.getElementById('dailyContent');
   // Check if already played today
-  const todayKey = 'daily_played_' + new Date().toISOString().slice(0,10);
+  const todayKey = 'daily_played_' + new Date().toLocaleDateString('en-CA');
   const alreadyPlayed = localStorage.getItem(todayKey);
 
   // Calculate time until next daily
@@ -2320,7 +2377,7 @@ function startDailyML() {
 
 // Track daily played in localStorage
 function markDailyPlayed() {
-  const todayKey = 'daily_played_' + new Date().toISOString().slice(0,10);
+  const todayKey = 'daily_played_' + new Date().toLocaleDateString('en-CA');
   localStorage.setItem(todayKey, '1');
 }
 
@@ -2554,7 +2611,7 @@ async function dismissWarning() {
   const reason = currentProfile?.warned_reason;
   if (reason === 'username') {
     const raw = document.getElementById('warnedNicknameInput').value.trim();
-    if (!/^[a-zA-Z0-9]{2,20}$/.test(raw)) { toast('2–20 characters, letters and numbers only!'); return; }
+    if (!/^[a-zA-Z0-9_\-\.]{2,20}$/.test(raw)) { toast('2–20 characters. Letters, numbers, _ - . allowed.'); return; }
     const { data: existing } = await sb.from('profiles').select('email').eq('nickname', raw).maybeSingle();
     if (existing && existing.email !== currentUser.email) { toast('That nickname is taken!'); return; }
     await sb.from('profiles').update({ nickname: raw, warned_reason: null, warned_at: null }).eq('email', currentUser.email);
