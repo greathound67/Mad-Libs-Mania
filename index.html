@@ -7,7 +7,7 @@
 
 <!-- SEO Meta Tags -->
 <meta name="description" content="Play Mad Libs Mania free online! Fill in the blanks to create 120 hilarious stories. No download needed. Sign in with Google to unlock all stories, track ratings, and climb the leaderboard!">
-<meta name="keywords" content="mad libs, mad libs online, free mad libs, mad libs game, word game, fill in the blank game, funny stories, kids game, family game, online word game">
+<meta name="keywords" content="mad libs, mad libs online, free mad libs, mad libs game, mad libs mania, play mad libs, mad libs for kids, mad libs for adults, mad libs for teens, mad libs free online, fill in the blank game, fill in the blank stories, word game online, funny word game, silly word game, free word game, online word game, funny stories, silly stories, hilarious stories, make your own story, story generator, funny game, silly game, humor game, comedy game, free online game, free browser game, no download game, play online free, family game, kids game, classroom game, party game, group game, multiplayer word game, creative writing game, adjective game, noun game, verb game, vocabulary game, english game, language game, word fill game, story fill game, random story generator, funny story maker, best free game, free fun game, leaderboard game, rated game">
 <meta name="author" content="Mad Libs Mania">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://greathound67.github.io/Mad-Libs-Mania/">
@@ -542,6 +542,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     <div class="lb-tabs">
       <button class="lb-tab active" onclick="switchLbTab(0)">👑 OG Members</button>
       <button class="lb-tab" onclick="switchLbTab(1)">🎭 Most Played</button>
+      <button class="lb-tab" onclick="switchLbTab(2)">🔥 Streaks</button>
     </div>
     <div id="lbContent"></div>
   </div>
@@ -1180,16 +1181,22 @@ const TOTAL = 120;
 
 // ===================== BADGES =====================
 const NORMAL_BADGES = [
-  { id:'welcome',   icon:'👋', name:'Welcome!',      desc:'Signed in for the first time',   check: (p) => true },
-  { id:'played10',  icon:'🎭', name:'Getting Started',desc:'Played 10 mad libs',            check: (p) => p.played >= 10 },
-  { id:'played25',  icon:'🌟', name:'On a Roll',      desc:'Played 25 mad libs',            check: (p) => p.played >= 25 },
-  { id:'played50',  icon:'🔥', name:'Halfway There',  desc:'Played 50 mad libs',            check: (p) => p.played >= 50 },
-  { id:'played100', icon:'💯', name:'Centurion',      desc:'Played 100 mad libs',           check: (p) => p.played >= 100 },
-  { id:'played200', icon:'🚀', name:'Rocket',         desc:'Played 200 mad libs',           check: (p) => p.played >= 200 },
-  { id:'played300', icon:'⚡', name:'Lightning',      desc:'Played 300 mad libs',           check: (p) => p.played >= 300 },
-  { id:'played500', icon:'🏅', name:'Elite',          desc:'Played 500 mad libs',           check: (p) => p.played >= 500 },
-  { id:'played1000',icon:'💎', name:'Diamond',        desc:'Played 1000 mad libs',          check: (p) => p.played >= 1000 },
-  { id:'all120',    icon:'🏆', name:'Completionist',  desc:'Played all 120 unique stories', check: (p) => p.uniquePlayed >= 120 },
+  { id:'welcome',   icon:'👋', name:'Welcome!',       desc:'Signed in for the first time',     check: (p) => true },
+  { id:'played10',  icon:'🎭', name:'Getting Started', desc:'Played 10 mad libs',              check: (p) => p.played >= 10 },
+  { id:'played25',  icon:'🌟', name:'On a Roll',       desc:'Played 25 mad libs',              check: (p) => p.played >= 25 },
+  { id:'played50',  icon:'🔥', name:'Halfway There',   desc:'Played 50 mad libs',              check: (p) => p.played >= 50 },
+  { id:'played100', icon:'💯', name:'Centurion',       desc:'Played 100 mad libs',             check: (p) => p.played >= 100 },
+  { id:'played200', icon:'🚀', name:'Rocket',          desc:'Played 200 mad libs',             check: (p) => p.played >= 200 },
+  { id:'played300', icon:'⚡', name:'Lightning',       desc:'Played 300 mad libs',             check: (p) => p.played >= 300 },
+  { id:'played500', icon:'🏅', name:'Elite',           desc:'Played 500 mad libs',             check: (p) => p.played >= 500 },
+  { id:'all120',    icon:'🏆', name:'Completionist',   desc:'Played all 120 unique stories',   check: (p) => p.uniquePlayed >= 120 },
+  { id:'streak3',   icon:'🌱', name:'Warm Up',         desc:'3 day streak',                    check: (p) => p.bestStreak >= 3 },
+  { id:'streak7',   icon:'🔥', name:'On Fire',         desc:'7 day streak',                    check: (p) => p.bestStreak >= 7 },
+  { id:'streak25',  icon:'⚡', name:'Unstoppable',     desc:'25 day streak',                   check: (p) => p.bestStreak >= 25 },
+  { id:'streak50',  icon:'💪', name:'Dedicated',       desc:'50 day streak',                   check: (p) => p.bestStreak >= 50 },
+  { id:'streak100', icon:'🌟', name:'Century Streak',  desc:'100 day streak',                  check: (p) => p.bestStreak >= 100 },
+  { id:'streak200', icon:'🚀', name:'Legendary',       desc:'200 day streak',                  check: (p) => p.bestStreak >= 200 },
+  { id:'streak365', icon:'👑', name:'Year of Laughs',  desc:'365 day streak',                  check: (p) => p.bestStreak >= 365 },
 ];
 const SPECIAL_BADGES = [
   { id:'og',  icon:'👑', name:'OG',        desc:'One of the first 50 accounts',  check: (p) => p.is_og },
@@ -1321,6 +1328,7 @@ async function handleSession(session) {
       syncLeaderboard().catch(e => console.log('Sync error:', e));
       checkBanAndWarnings().catch(e => console.log('Ban check error:', e));
       checkUnreadReplies().catch(e => console.log('Reply check error:', e));
+      checkStreakOnLogin();
 
       toast('🎉 Welcome back, ' + (profile.nickname || currentUser.name.split(' ')[0]) + '!');
     }
@@ -1353,6 +1361,8 @@ async function syncLeaderboard() {
         avatar: currentProfile.avatar || '',
         played: totalPlays,
         is_mod: currentProfile.is_mod || false,
+        current_streak: proStateCache?.currentStreak || 0,
+        best_streak: proStateCache?.bestStreak || 0,
       }, { onConflict: 'email' });
     }
   } catch(e) { console.log('Sync error:', e); }
@@ -1450,7 +1460,10 @@ async function fetchProState() {
         ratings: data.ratings && typeof data.ratings === 'object' ? data.ratings : {},
         themeScores: data.theme_scores && typeof data.theme_scores === 'object' ? data.theme_scores : {},
         themeCounts: data.theme_counts && typeof data.theme_counts === 'object' ? data.theme_counts : {},
-        totalPlays: data.total_plays || 0
+        totalPlays: data.total_plays || 0,
+        currentStreak: data.current_streak || 0,
+        bestStreak: data.best_streak || 0,
+        lastStreakDate: data.last_streak_date || null
       };
     } else {
       // New user — check if localStorage has old data to migrate
@@ -1480,7 +1493,10 @@ async function pushProState() {
       ratings: proStateCache.ratings,
       theme_scores: proStateCache.themeScores,
       theme_counts: proStateCache.themeCounts,
-      total_plays: proStateCache.totalPlays || 0
+      total_plays: proStateCache.totalPlays || 0,
+      current_streak: proStateCache.currentStreak || 0,
+      best_streak: proStateCache.bestStreak || 0,
+      last_streak_date: proStateCache.lastStreakDate || null
     }, { onConflict: 'email' });
   } catch(e) { console.log('pushProState error:', e); }
 }
@@ -1492,12 +1508,16 @@ async function markPlayed(id) {
     if (!proStateCache.played.includes(id)) proStateCache.played.push(id);
     // Increment total play count (separate from unique)
     proStateCache.totalPlays = (proStateCache.totalPlays || 0) + 1;
+    // Update streak
+    updateStreak();;
     await pushProState();
     updatePlayedLeaderboard(proStateCache.totalPlays);
     // Record global play every time
     sb.from('global_plays').insert({
       mad_lib_id: id,
       email: currentUser.email,
+      name: currentProfile?.nickname || null,
+      avatar: currentProfile?.avatar || null,
       played_at: new Date().toISOString()
     }).then(() => {}).catch(e => console.log('Global play error:', e));
     // Check for new badges
@@ -1719,12 +1739,12 @@ function revealStory() {
   document.getElementById('storyBody').innerHTML=currentML.template.split(/(\{[^}]+\})/g).map(p=>{
     const m=p.match(/^\{([^}]+)\}$/); return (m&&currentAnswers[m[1]])?`<span class="highlight">${escHtml(currentAnswers[m[1]])}</span>`:escHtml(p);
   }).join('');
-  document.getElementById('storyNextBtn').textContent=currentML?._isDaily?'→ Back Home':isPro()?'⭐ Rate This Story!':'→ Back Home';
+  document.getElementById('storyNextBtn').textContent=currentML?._isDaily?'✅ Finish':isPro()?'⭐ Rate This Story!':'→ Back Home';
   if(!currentML?._isDaily) markPlayed(currentML.id);
   else markDailyPlayed();
   showScreen('screenStory');
 }
-function afterStory() { if(currentML?._isDaily){ showScreen('screenDaily'); return; } isPro()?showScreen('screenRating'):showScreen('screenHome'); }
+function afterStory() { if(currentML?._isDaily){ markDailyPlayed(); showScreen('screenDaily'); return; } isPro()?showScreen('screenRating'):showScreen('screenHome'); }
 
 
 
@@ -1948,6 +1968,9 @@ function switchLbTab(idx){
   renderLbTab();
 }
 
+let activeLbPlayedTime = 0; // 0=all time, 1=weekly
+let activeLbStreakType = 0; // 0=best, 1=current
+
 async function buildLeaderboard(){
   activeLbTab=0;
   document.querySelectorAll('.lb-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
@@ -1961,7 +1984,8 @@ async function renderLbTab(){
   const el=document.getElementById('lbContent');
   el.innerHTML='<div class="lb-loading">Loading... ⏳</div>';
   if(activeLbTab===0) await renderOGTab(el);
-  else await renderMostPlayedTab(el);
+  else if(activeLbTab===1) await renderMostPlayedTab(el);
+  else await renderStreakTab(el);
 }
 
 async function renderOGTab(el){
@@ -1982,23 +2006,100 @@ async function renderOGTab(el){
   }catch(e){console.error(e);el.innerHTML='<div class="lb-empty">Could not load. Try again.</div>';}
 }
 
-async function renderMostPlayedTab(el){
+
+async function renderStreakTab(el){
+  const toggleHtml = `<div class="pop-time-tabs" style="margin-bottom:14px">
+    <button class="pop-time-tab${activeLbStreakType===0?' active':''}" onclick="switchLbStreakType(0)">🏆 Best Ever</button>
+    <button class="pop-time-tab${activeLbStreakType===1?' active':''}" onclick="switchLbStreakType(1)">🔥 Current</button>
+  </div>`;
   try{
-    const {data,error}=await sb.from('leaderboard_played').select('*').order('played',{ascending:false}).limit(50);
+    const col = activeLbStreakType===0 ? 'best_streak' : 'current_streak';
+    const label = activeLbStreakType===0 ? 'best streak' : 'current streak';
+    // Fetch from user_progress joined with profiles for name/avatar
+    const {data,error}=await sb.from('user_progress').select('email,current_streak,best_streak').order(col,{ascending:false}).limit(50);
     if(error) throw error;
-    const entries=(data||[]).filter(e=>e.played>0);
+    const filtered=(data||[]).filter(e=>(activeLbStreakType===0?e.best_streak:e.current_streak)>0);
+    // Get names/avatars from leaderboard_og or leaderboard_played
+    const emails=filtered.map(e=>e.email);
+    let nameMap={};
+    if(emails.length){
+      const {data:profiles}=await sb.from('leaderboard_played').select('email,name,avatar,is_mod').in('email',emails);
+      (profiles||[]).forEach(p=>{nameMap[p.email]={name:p.name,avatar:p.avatar,is_mod:p.is_mod};});
+    }
+    const entries=filtered.map(e=>({
+      email:e.email,
+      name:nameMap[e.email]?.name||'Unknown',
+      avatar:nameMap[e.email]?.avatar||'🎭',
+      is_mod:nameMap[e.email]?.is_mod||false,
+      played:activeLbStreakType===0?e.best_streak:e.current_streak
+    }));
     const myIdx=currentUser?entries.findIndex(e=>e.email===currentUser.email):-1;
     const stats=document.getElementById('myRankStats');
     if(stats&&currentUser){
       const ps=loadProState();
-      if(myIdx!==-1) stats.innerHTML=`Rank <strong>#${myIdx+1}</strong> Most Played · ${entries[myIdx].played} stories`;
-      else if(ps.played.length>0) stats.innerHTML=`<span style="color:#888">${ps.played.length} stories played · not in top 50 yet</span>`;
-      else stats.innerHTML=`<span style="color:#aaa">Play some stories to appear here!</span>`;
+      const myStreak=activeLbStreakType===0?(ps.bestStreak||0):(ps.currentStreak||0);
+      if(myIdx!==-1) stats.innerHTML=`Rank <strong>#${myIdx+1}</strong> ${activeLbStreakType===0?'Best':'Current'} Streak · ${myStreak} days`;
+      else stats.innerHTML=`<span style="color:#aaa">${activeLbStreakType===1?'Finish a mad lib to start your streak!':'No streak data yet.'}</span>`;
     }
-    const desc=`<p class="lb-section-desc">🎭 Top 50 players by total mad libs played. Keep playing to climb!</p>`;
-    if(!entries.length){el.innerHTML=desc+'<div class="lb-empty">No plays yet — be first! 🎭</div>';return;}
-    el.innerHTML=desc+renderTable(entries,myIdx,(e)=>({score:`<div class="lb-score">${e.played}<span>played</span></div>`,extra:''}));
+    const desc=`<p class="lb-section-desc">${activeLbStreakType===0?'🏆 All-time best streaks. Who has been the most consistent?':'🔥 Who is on a streak RIGHT NOW?'}</p>`;
+    if(!entries.length){el.innerHTML=toggleHtml+desc+'<div class="lb-empty">No streaks yet — start yours today! 🔥</div>';return;}
+    el.innerHTML=toggleHtml+desc+renderTable(entries,myIdx,(e)=>({score:`<div class="lb-score">${e.played}<span>${label}</span></div>`,extra:''}));
   }catch(e){console.error(e);el.innerHTML='<div class="lb-empty">Could not load. Try again.</div>';}
+}
+
+function switchLbStreakType(t){
+  activeLbStreakType=t;
+  renderLbTab();
+}
+
+async function renderMostPlayedTab(el){
+  // Time toggle UI
+  const toggleHtml = `<div class="pop-time-tabs" style="margin-bottom:14px">
+    <button class="pop-time-tab${activeLbPlayedTime===0?' active':''}" onclick="switchLbPlayedTime(0)">All Time</button>
+    <button class="pop-time-tab${activeLbPlayedTime===1?' active':''}" onclick="switchLbPlayedTime(1)">This Week</button>
+  </div>`;
+  try{
+    let entries, myIdx, desc;
+    const stats=document.getElementById('myRankStats');
+    if(activeLbPlayedTime===0){
+      // All time — from leaderboard_played table
+      const {data,error}=await sb.from('leaderboard_played').select('*').order('played',{ascending:false}).limit(50);
+      if(error) throw error;
+      entries=(data||[]).filter(e=>e.played>0);
+      myIdx=currentUser?entries.findIndex(e=>e.email===currentUser.email):-1;
+      if(stats&&currentUser){
+        const ps=loadProState();
+        if(myIdx!==-1) stats.innerHTML=`Rank <strong>#${myIdx+1}</strong> All Time · ${entries[myIdx].played} stories`;
+        else stats.innerHTML=`<span style="color:#aaa">Play stories to appear here!</span>`;
+      }
+      desc=`<p class="lb-section-desc">🎭 Top 50 players by total mad libs played ever.</p>`;
+    } else {
+      // Weekly — count global_plays from past 7 days
+      const weekAgo = new Date(Date.now()-7*24*60*60*1000).toISOString();
+      const {data:plays,error}=await sb.from('global_plays').select('email,name,avatar').gte('played_at',weekAgo);
+      if(error) throw error;
+      // Aggregate by email
+      const counts={};
+      (plays||[]).forEach(p=>{
+        if(!counts[p.email]) counts[p.email]={email:p.email,name:p.name,avatar:p.avatar,played:0};
+        counts[p.email].played++;
+      });
+      entries=Object.values(counts).sort((a,b)=>b.played-a.played).slice(0,50).filter(e=>e.played>0);
+      myIdx=currentUser?entries.findIndex(e=>e.email===currentUser.email):-1;
+      if(stats&&currentUser){
+        if(myIdx!==-1) stats.innerHTML=`Rank <strong>#${myIdx+1}</strong> This Week · ${entries[myIdx].played} stories`;
+        else stats.innerHTML=`<span style="color:#aaa">Play this week to appear here!</span>`;
+      }
+      desc=`<p class="lb-section-desc">🎭 Top 50 players by mad libs played in the last 7 days.</p>`;
+    }
+    if(!entries.length){el.innerHTML=toggleHtml+desc+'<div class="lb-empty">No data yet — be first! 🎭</div>';return;}
+    el.innerHTML=toggleHtml+desc+renderTable(entries,myIdx,(e)=>({score:`<div class="lb-score">${e.played}<span>${activeLbPlayedTime===1?'this week':'played'}</span></div>`,extra:''}));
+  }catch(e){console.error(e);el.innerHTML='<div class="lb-empty">Could not load. Try again.</div>';}
+}
+
+function switchLbPlayedTime(t){
+  activeLbPlayedTime=t;
+  renderLbTab();
 }
 
 function renderTable(entries,myIdx,getScore){
@@ -2049,7 +2150,7 @@ async function viewProfileData(profile, backScreen){
   const isOg=ogList?ogList.some(e=>e.email===profile.email):false;
 
   const played=playedData?.played||0;  // this is total plays from leaderboard
-  const profileForBadges={played, uniquePlayed: proStateCache?.played?.length || played, is_og:isOg, is_mod:profile.is_mod||false};
+  const profileForBadges={played, uniquePlayed: proStateCache?.played?.length || played, is_og:isOg, is_mod:profile.is_mod||false, bestStreak: isOwn?(proStateCache?.bestStreak||0):0};
   const earnedBadges=getEarnedBadges(profileForBadges);
   const earnedIds=new Set(earnedBadges.map(b=>b.id));
 
