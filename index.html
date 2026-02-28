@@ -1510,7 +1510,7 @@ async function markPlayed(id) {
     // Increment total play count (separate from unique)
     proStateCache.totalPlays = (proStateCache.totalPlays || 0) + 1;
     // Update streak
-    updateStreak();;
+    updateStreak();
     await pushProState();
     updatePlayedLeaderboard(proStateCache.totalPlays);
     // Record global play every time
@@ -1958,6 +1958,67 @@ function recCard(ml,highlight){
   return `<div class="rec-card" onclick="playFromLibrary(${ml.id})"><h3>${escHtml(ml.title)}</h3>
     <div class="rc-themes">${ml.themes.map(themePill).join('')}</div>
     ${matching.length?`<div class="rec-why">✓ Matches your ${matching.join(' + ')} taste</div>`:''}</div>`;
+}
+
+
+// ===================== STREAK SYSTEM =====================
+function updateStreak() {
+  if (!isPro() || !proStateCache) return;
+  const today = new Date().toLocaleDateString('en-CA');
+  const last = proStateCache.lastStreakDate;
+  if (last === today) return; // already counted today
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yStr = yesterday.toLocaleDateString('en-CA');
+  if (last === yStr) {
+    proStateCache.currentStreak = (proStateCache.currentStreak || 0) + 1;
+  } else if (!last) {
+    proStateCache.currentStreak = 1;
+  } else {
+    proStateCache.currentStreak = 1; // missed a day, reset
+  }
+  proStateCache.lastStreakDate = today;
+  if (proStateCache.currentStreak > (proStateCache.bestStreak || 0)) {
+    proStateCache.bestStreak = proStateCache.currentStreak;
+  }
+}
+
+function checkStreakOnLogin() {
+  if (!isPro() || !proStateCache) return;
+  const today = new Date().toLocaleDateString('en-CA');
+  const last = proStateCache.lastStreakDate;
+  if (!last || last === today) return;
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yStr = yesterday.toLocaleDateString('en-CA');
+  if (last < yStr) {
+    proStateCache.currentStreak = 0;
+    pushProState();
+  }
+}
+
+// ===================== DAILY MAD LIB TRACKING =====================
+async function markDailyPlayed() {
+  const todayKey = 'daily_played_' + new Date().toLocaleDateString('en-CA');
+  const alreadyPlayed = localStorage.getItem(todayKey);
+  localStorage.setItem(todayKey, '1');
+  if (alreadyPlayed) return;
+  if (isPro() && proStateCache) {
+    proStateCache.totalPlays = (proStateCache.totalPlays || 0) + 1;
+    updateStreak();
+    await pushProState();
+    // Update leaderboard played count
+    const totalPlays = proStateCache.totalPlays;
+    sb.from('leaderboard_played').upsert({
+      email: currentUser.email,
+      name: currentProfile?.nickname,
+      avatar: currentProfile?.avatar || '',
+      played: totalPlays,
+      is_mod: currentProfile?.is_mod || false,
+      current_streak: proStateCache.currentStreak || 0,
+      best_streak: proStateCache.bestStreak || 0,
+    }, { onConflict: 'email' }).catch(e => console.log('Leaderboard update error:', e));
+  }
 }
 
 // ===================== LEADERBOARD =====================
