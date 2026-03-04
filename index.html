@@ -2038,7 +2038,7 @@ function showStreakNotif(msg) {
   }, 3500);
 }
 
-function checkStreakOnLogin() {
+async function checkStreakOnLogin() {
   if (!isPro() || !proStateCache) return;
   const today = new Date().toLocaleDateString('en-CA');
   const last = proStateCache.lastStreakDate;
@@ -2048,7 +2048,9 @@ function checkStreakOnLogin() {
   const yStr = yesterday.toLocaleDateString('en-CA');
   if (last < yStr) {
     proStateCache.currentStreak = 0;
-    pushProState();
+    // Push reset to DB and leaderboard so current streak leaderboard is accurate
+    await pushProState();
+    await sb.from('leaderboard_played').update({ current_streak: 0 }).eq('email', currentUser.email);
   }
 }
 
@@ -2132,10 +2134,18 @@ async function renderStreakTab(el){
   try{
     const col = activeLbStreakType===0 ? 'best_streak' : 'current_streak';
     const label = activeLbStreakType===0 ? 'best streak' : 'current streak';
-    // Fetch from user_progress joined with profiles for name/avatar
-    const {data,error}=await sb.from('user_progress').select('email,current_streak,best_streak').order(col,{ascending:false}).limit(50);
+    // Fetch from user_progress
+    const {data,error}=await sb.from('user_progress').select('email,current_streak,best_streak,last_streak_date').order(col,{ascending:false}).limit(100);
     if(error) throw error;
-    const filtered=(data||[]).filter(e=>(activeLbStreakType===0?e.best_streak:e.current_streak)>0);
+    // For current streak: only show users who played today or yesterday (active streak)
+    const today = new Date().toLocaleDateString('en-CA');
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+    const yStr = yesterday.toLocaleDateString('en-CA');
+    const filtered=(data||[]).filter(e=>{
+      if(activeLbStreakType===0) return e.best_streak>0;
+      // Current streak — must have played today or yesterday to count as active
+      return e.current_streak>0 && (e.last_streak_date===today || e.last_streak_date===yStr);
+    }).slice(0,50);
     // Get names/avatars from leaderboard_og or leaderboard_played
     const emails=filtered.map(e=>e.email);
     let nameMap={};
@@ -2278,6 +2288,7 @@ async function viewProfileData(profile, backScreen){
 
   const played=playedData?.played||0;
   const isOwn=currentUser&&currentUser.email===profile.email;
+  if(isOwn) await checkStreakOnLogin(); // ensure streak is accurate before displaying
   const ps=isOwn?loadProState():null;
   const profileForBadges={played, uniquePlayed: proStateCache?.played?.length || played, is_og:isOg, is_mod:profile.is_mod||false, bestStreak: isOwn?(proStateCache?.bestStreak||0):0};
   const earnedBadges=getEarnedBadges(profileForBadges);
