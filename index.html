@@ -471,7 +471,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     </div>
     <div class="story-actions">
       <button class="btn btn-primary" id="storyNextBtn" onclick="afterStory()">→ Continue</button>
-      <button class="btn btn-secondary" onclick="copyStory()" id="copyStoryBtn">📋 Copy Story</button>
+      <button class="btn btn-secondary" onclick="shareStory()" id="copyStoryBtn">📤 Export Story</button>
       <button class="btn btn-outline" onclick="showScreen('screenFill')">← Back to Fill</button>
     </div>
   </div>
@@ -1773,25 +1773,30 @@ async function afterStory() { if(currentML?._isDaily){ await markDailyPlayed(); 
 
 
 // ===================== COPY STORY =====================
-async function copyStory() {
-  const title = document.getElementById('storyTitle')?.textContent || '';
+async function shareStory() {
+  const title = document.getElementById('storyTitle')?.textContent || 'My Mad Lib';
   const body = document.getElementById('storyBody')?.innerText || '';
-  const text = title + '\n\n' + body + '\n\n— Made with Mad Libs Mania! 🎭';
+  const text = title + '\n\n' + body + '\n\n— Made with Mad Libs Mania! 🎭\nhttps://greathound67.github.io/Mad-Libs-Mania/';
   try {
-    await navigator.clipboard.writeText(text);
-    const btn = document.getElementById('copyStoryBtn');
-    btn.textContent = '✅ Copied!';
-    setTimeout(() => { btn.textContent = '📋 Copy Story'; }, 2000);
+    if (navigator.share) {
+      // Native share sheet — works on iOS/Android (AirDrop, Messages, etc)
+      await navigator.share({ title: 'Mad Libs Mania — ' + title, text });
+    } else {
+      // Fallback for desktop — copy to clipboard
+      await navigator.clipboard.writeText(text);
+      const btn = document.getElementById('copyStoryBtn');
+      const orig = btn.textContent;
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => { btn.textContent = orig; }, 2000);
+    }
   } catch(e) {
-    // Fallback for older browsers
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    toast('📋 Story copied!');
+    if (e.name !== 'AbortError') {
+      // User didn't cancel — try clipboard fallback
+      try {
+        await navigator.clipboard.writeText(text);
+        toast('📋 Copied to clipboard!');
+      } catch(e2) { toast('Could not share. Try copying manually.'); }
+    }
   }
 }
 
