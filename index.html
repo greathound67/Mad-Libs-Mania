@@ -1519,6 +1519,8 @@ OneSignalDeferred.push(async function(OneSignal) {
     appId: OS_APP_ID,
     notifyButton: { enable: false },
     allowLocalhostAsSecureOrigin: true,
+    serviceWorkerPath: '/Gapster/OneSignalSDKWorker.js',
+    serviceWorkerParam: { scope: '/Gapster/' },
   });
 });
 
@@ -2805,23 +2807,24 @@ async function viewProfileData(profile, backScreen){
         </div>
 
         <div class="badges-section">
-          <h3>🏅 Badges</h3>
-          <div class="badges-grid">
-            ${NORMAL_BADGES.map(b=>`
-              <div class="badge ${earnedIds.has(b.id)?'earned':'locked-badge'}" title="${escHtml(b.desc)}">
-                <div class="badge-icon">${b.icon}</div>
-                <div class="badge-name">${escHtml(b.name)}</div>
-                <div class="badge-desc">${escHtml(b.desc)}</div>
-              </div>`).join('')}
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <h3 style="margin:0">🏅 Badges</h3>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-weight:800;font-size:.95rem;color:var(--primary)">${earnedBadges.length} / ${ALL_BADGES.length} collected</span>
+              <button class="btn btn-outline btn-sm" onclick="openBadgeViewer('${escHtml(profile.email)}')">View All</button>
+            </div>
           </div>
-          <h3 style="margin-top:22px">⭐ Special</h3>
           <div class="badges-grid">
-            ${SPECIAL_BADGES.map(b=>`
-              <div class="badge ${earnedIds.has(b.id)?'earned':'locked-badge'}" title="${escHtml(b.desc)}">
+            ${earnedBadges.slice(0,8).map(b=>`
+              <div class="badge earned" title="${escHtml(b.desc)}">
                 <div class="badge-icon">${b.icon}</div>
                 <div class="badge-name">${escHtml(b.name)}</div>
-                <div class="badge-desc">${escHtml(b.desc)}</div>
               </div>`).join('')}
+            ${earnedBadges.length > 8 ? `<div class="badge earned" style="cursor:pointer" onclick="openBadgeViewer('${escHtml(profile.email)}')">
+              <div class="badge-icon">+${earnedBadges.length - 8}</div>
+              <div class="badge-name">More</div>
+            </div>` : ''}
+            ${earnedBadges.length === 0 ? `<div style="color:#aaa;font-size:.88rem;padding:10px 0">No badges yet — keep playing!</div>` : ''}
           </div>
         </div>
 
@@ -3453,7 +3456,7 @@ async function buildModPanel() {
 
     el.innerHTML = `<div class="mod-panel">
       <div class="mod-panel-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <h2>🛡️ ${profiles.length} Users · ${bots.length} Bots</h2>
+        <h2>🛡️ ${profiles.filter(p=>!p.email.endsWith('@gapster.bot')).length} Users · ${bots.length} Bots</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button onclick="openAddBotModal()" style="background:#6f42c1;color:#fff;border:2px solid rgba(255,255,255,.4);border-radius:20px;padding:6px 14px;font-weight:800;font-size:.85rem;cursor:pointer">🤖 Add Bot</button>
           <button onclick="buildModMessages()" style="background:rgba(255,255,255,.2);color:#fff;border:2px solid rgba(255,255,255,.4);border-radius:20px;padding:6px 14px;font-weight:800;font-size:.85rem;cursor:pointer">✉️ Messages</button>
@@ -4058,6 +4061,10 @@ async function openBadgeViewer(email) {
   // Build profileData for this email
   let profileForViewer = null;
   // Try to get from current context
+  // Always fetch OG status from leaderboard_og (source of truth)
+  const {data:ogList} = await sb.from('leaderboard_og').select('email').order('joined_at',{ascending:true}).limit(50);
+  const isOgViewer = ogList ? ogList.some(e=>e.email===email) : false;
+
   if(currentUser && currentUser.email === email && proStateCache) {
     const joinedAt = currentProfile?.joined_at ? new Date(currentProfile.joined_at) : new Date();
     const ageDays = Math.floor((new Date() - joinedAt) / (1000*60*60*24));
@@ -4066,13 +4073,12 @@ async function openBadgeViewer(email) {
       played: proStateCache.totalPlays || proStateCache.played.length,
       uniquePlayed: proStateCache.played.length,
       bestStreak: proStateCache.bestStreak || 0,
-      is_og: currentProfile?.is_og || false,
+      is_og: isOgViewer,
       is_mod: currentProfile?.is_mod || false,
       accountAgeDays: ageDays,
       eventPlayed,
     };
   } else {
-    // Fetch basic data for other profiles
     const {data:prof} = await sb.from('profiles').select('*').eq('email',email).maybeSingle();
     const {data:lbData} = await sb.from('leaderboard_played').select('played,best_streak').eq('email',email).maybeSingle();
     const joinedAt = prof?.joined_at ? new Date(prof.joined_at) : new Date();
@@ -4080,7 +4086,7 @@ async function openBadgeViewer(email) {
       played: lbData?.played || 0,
       uniquePlayed: 0,
       bestStreak: lbData?.best_streak || 0,
-      is_og: prof?.is_og || false,
+      is_og: isOgViewer,
       is_mod: prof?.is_mod || false,
       accountAgeDays: Math.floor((new Date() - joinedAt) / (1000*60*60*24)),
       eventPlayed: [],
