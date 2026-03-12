@@ -1548,7 +1548,6 @@ async function saveNickname() {
   try {
     const { data: lastProfile } = await sb.from('profiles').select('player_id').order('joined_at', {ascending: false}).limit(100);
     if (lastProfile && lastProfile.length > 0) {
-      // Find highest player_id
       const ids = lastProfile.map(p => p.player_id).filter(Boolean);
       if (ids.length > 0) nextPlayerId = incrementPlayerId(ids);
     }
@@ -3510,20 +3509,41 @@ async function submitEmailAuth() {
   const btn = document.getElementById('emailAuthBtn');
   if(btn) { btn.textContent = '...'; btn.disabled = true; }
   try {
-    let result;
     if(emailAuthMode === 'signup') {
-      result = await sb.auth.signUp({ email, password });
+      // Check if email already exists in profiles (Google account)
+      const {data:existing} = await sb.from('profiles').select('email').eq('email',email).maybeSingle();
+      if(existing) {
+        showEmailAuthError('This email is already registered via Google. Please use the "Continue with Google" button above.');
+        if(btn) { btn.textContent = 'Create Account'; btn.disabled=false; }
+        return;
+      }
+      const result = await sb.auth.signUp({ email, password });
+      if(result.error) {
+        showEmailAuthError(result.error.message);
+        if(btn) { btn.textContent = 'Create Account'; btn.disabled=false; }
+        return;
+      }
+      if(result.data?.user && !result.data?.session) {
+        showEmailAuthError('Check your email for a confirmation link!');
+      }
     } else {
-      result = await sb.auth.signInWithPassword({ email, password });
-    }
-    if(result.error) {
-      showEmailAuthError(result.error.message);
-      if(btn) { btn.textContent = emailAuthMode==='signin'?'Sign In':'Create Account'; btn.disabled=false; }
-      return;
-    }
-    // Success — session handler fires automatically
-    if(emailAuthMode==='signup' && result.data?.user && !result.data?.session) {
-      showEmailAuthError('Check your email for a confirmation link!');
+      // Sign in
+      const result = await sb.auth.signInWithPassword({ email, password });
+      if(result.error) {
+        // Check if they registered via Google
+        if(result.error.message.toLowerCase().includes('invalid') || result.error.message.toLowerCase().includes('credentials')) {
+          const {data:existing} = await sb.from('profiles').select('email').eq('email',email).maybeSingle();
+          if(existing) {
+            showEmailAuthError('This email is registered via Google. Please use the "Continue with Google" button above.');
+          } else {
+            showEmailAuthError('Incorrect email or password. No account? Click "Sign up free" below.');
+          }
+        } else {
+          showEmailAuthError(result.error.message);
+        }
+        if(btn) { btn.textContent = 'Sign In'; btn.disabled=false; }
+        return;
+      }
     }
   } catch(e) {
     showEmailAuthError('Something went wrong. Please try again.');
@@ -3607,19 +3627,14 @@ function showNewAccountPopup(nickname) {
 // Called after successful saveNickname or bot creation
 
 // ===================== BOT MANAGEMENT =====================
-// Bot player IDs start with B (B101, B102, ...) to separate from human A-prefix IDs
+// Bots use same player_id format as humans — just grab next available ID
 async function getNextBotPlayerId() {
   try {
-    const {data} = await sb.from('bots').select('player_id').order('created_at',{ascending:false}).limit(100);
-    const ids = (data||[]).map(b=>b.player_id).filter(Boolean).filter(id=>id.startsWith('B'));
-    if(!ids.length) return 'B101';
-    let maxNum = 100;
-    for(const id of ids){
-      const m = id.match(/^B(\d+)$/);
-      if(m) maxNum = Math.max(maxNum, parseInt(m[1]));
-    }
-    return 'B' + (maxNum + 1);
-  } catch(e) { return 'B101'; }
+    const {data} = await sb.from('profiles').select('player_id').order('joined_at',{ascending:false}).limit(200);
+    const ids = (data||[]).map(p=>p.player_id).filter(Boolean);
+    if(!ids.length) return 'G1001';
+    return incrementPlayerId(ids);
+  } catch(e) { return 'G1001'; }
 }
 
 let addBotIconSelection = '🤖';
