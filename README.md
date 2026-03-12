@@ -6,7 +6,7 @@ A free browser-based fill-in-the-blank word game with 120 hilarious stories, dai
 👉 **[gapster - Play Free](https://greathound67.github.io/Gapster)**
 
 ## ✨ Features
-- 120 unique stories across themes like Adventure, School, Halloween, Sports and more
+- 120 unique stories across themes like Adventure, Food, Animals, Sports and more
 - Daily story that rotates every day
 - Google sign in with full user profiles
 - Leaderboards — most played, streaks, OG members
@@ -18,6 +18,7 @@ A free browser-based fill-in-the-blank word game with 120 hilarious stories, dai
 ## 🛠️ Built With
 - Vanilla HTML, CSS, JavaScript
 - Supabase (auth + database)
+- OneSignal (push notifications)
 - GitHub Pages (hosting)
 
 ## 🚀 Status
