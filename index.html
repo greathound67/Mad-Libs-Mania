@@ -407,6 +407,9 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .notif-item .ni-type{display:inline-block;font-size:.65rem;font-weight:800;padding:1px 7px;border-radius:8px;margin-bottom:5px;}
 .nt-badge{background:#fff3cd;color:#856404;}.nt-flag{background:#f8d7da;color:#842029;}.nt-reply{background:#d4edda;color:#155724;}.nt-streak{background:#fdebd0;color:#9c4221;}.nt-streak_loss{background:#e2e3e5;color:#383d41;}.nt-system{background:#d1ecf1;color:#0c5460;}.nt-best_streak{background:#d4edda;color:#155724;}
 
+.event-popup{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:linear-gradient(135deg,#ff6b35,#f7c59f);color:#fff;border:3px solid var(--ink);border-radius:30px;padding:12px 20px;font-weight:800;font-size:.95rem;z-index:300;box-shadow:4px 4px 0 var(--ink);transition:transform .5s cubic-bezier(.175,.885,.32,1.275);pointer-events:auto;max-width:92vw;text-align:center;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;}
+.event-popup.show{transform:translateX(-50%) translateY(0);}
+
 /* ===== ADD BOT MODAL ===== */
 .bot-field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;text-align:left;}
 .bot-field label{font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--secondary);}
@@ -629,7 +632,10 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     <div class="section-header">
       <button class="btn btn-outline" onclick="showScreen('screenHome')">← Back</button>
       <h2>🔔 Inbox</h2>
-      <button class="btn btn-outline btn-sm" onclick="markAllNotifsRead()">Mark All Read</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="markAllNotifsRead()">Mark All Read</button>
+        <button class="btn btn-outline btn-sm" style="color:#dc3545;border-color:#dc3545" onclick="clearAllNotifs()">🗑️ Clear All</button>
+      </div>
     </div>
     <div id="inboxContent"><div class="lb-loading">Loading... ⏳</div></div>
   </div>
@@ -775,6 +781,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 <button class="notif-bell" id="notifBell" onclick="showScreen('screenInbox')">🔔<span id="notifBellCount" class="notif-badge hidden">0</span></button>
 <button class="contact-btn" onclick="openContactModal()" id="contactBtn" style="display:none">✉️ Contact Dev <span id="contactNotifDot" class="notif-dot hidden"></span></button>
 <div class="new-account-popup" id="newAccountPopup"></div>
+<div class="event-popup" id="eventPopup"></div>
 <div class="badge-notif" id="badgeNotif"><div class="bn-icon" id="badgeNotifIcon">🏅</div><div><div class="bn-text" id="badgeNotifName">Badge Unlocked!</div><div class="bn-sub" id="badgeNotifDesc"></div></div></div>
 
 <!-- LOGIN MODAL -->
@@ -1264,6 +1271,239 @@ function getTodaysDailyML() {
 
 
 
+// ===================== EVENT MAD LIBS =====================
+const EVENT_MAD_LIBS = {
+  anniversary: {
+    id: 9001,
+    title: "Gapster's Birthday Bash!",
+    themes: ['Holidays','Music'],
+    emoji: '🎂',
+    label: "Gapster Anniversary",
+    words: [
+      {label:'Adjective',hint:'Describe something exciting'},
+      {label:'Number',hint:'How many?'},
+      {label:'Noun (plural)',hint:'A thing'},
+      {label:'Verb (past tense)',hint:'Something you did'},
+      {label:'Celebrity Name',hint:'Famous person'},
+      {label:'Adjective',hint:'Describe a feeling'},
+      {label:'Food',hint:'Something tasty'},
+      {label:'Place',hint:'Somewhere fun'},
+    ],
+    story: `Happy {0} birthday to the most {1} word game on the internet! It all started when {2} {3} across the floor and {4} said "I want to make something {5}!" Today we celebrate with {6} and a party at {7}. Thanks for playing!`
+  },
+  stpatricks: {
+    id: 9002,
+    title: "Lucky St. Patrick's Day!",
+    themes: ['Holidays','Adventure'],
+    emoji: '☘️',
+    label: "St. Patrick's Day",
+    words: [
+      {label:'Adjective',hint:'Describe something green'},
+      {label:'Animal',hint:'Any creature'},
+      {label:'Verb (ending in -ing)',hint:'An action'},
+      {label:'Noun (plural)',hint:'Objects'},
+      {label:'Place',hint:'Somewhere in Ireland or not'},
+      {label:'Adjective',hint:'Describe luck'},
+      {label:'Food',hint:'Something you eat'},
+      {label:'Name',hint:"Someone's name"},
+    ],
+    story: `It was a {0} morning when a {1} {2} through a field of shamrocks, scattering {3} everywhere! Legend says if you find them all in {4} you'll have {5} luck forever. To celebrate, {6} cooked up a big pot of {7} for the whole town. Top o' the morning!`
+  },
+  easter: {
+    id: 9003,
+    title: "Egg-cellent Easter Hunt!",
+    themes: ['Holidays','Animals'],
+    emoji: '🐣',
+    label: "Easter",
+    words: [
+      {label:'Adjective',hint:'Colorful or fun'},
+      {label:'Animal',hint:'A bunny-like creature'},
+      {label:'Verb',hint:'Something you do fast'},
+      {label:'Number',hint:'How many eggs?'},
+      {label:'Place',hint:'Somewhere outdoors'},
+      {label:'Adjective',hint:'Describe the eggs'},
+      {label:'Food',hint:'Easter candy'},
+      {label:'Emotion',hint:'How you feel'},
+    ],
+    story: `The {0} Easter Bunny, who was actually a giant {1}, decided to {2} across town hiding {3} eggs in {4}. Each egg was more {5} than the last, filled with {6} and chocolate. Everyone felt {7} when they found the golden egg at the very end!`
+  },
+  schoolsout: {
+    id: 9004,
+    title: "School's Out Forever! (Well, Summer)",
+    themes: ['School','Adventure'],
+    emoji: '🏖️',
+    label: "School's Out",
+    words: [
+      {label:'Adjective',hint:'Describe freedom'},
+      {label:'Verb (past tense)',hint:'What you did on the last day'},
+      {label:'Place',hint:'Somewhere fun for summer'},
+      {label:'Food',hint:'Summer snack'},
+      {label:'Celebrity',hint:'Famous person'},
+      {label:'Adjective',hint:'Describe summer'},
+      {label:'Noun (plural)',hint:'Summer things'},
+      {label:'Number',hint:'How many days of summer?'},
+    ],
+    story: `School was finally out and everyone felt {0}! They {1} out the front door straight toward {2}, carrying nothing but {3}. Even {4} showed up to celebrate the {5} summer ahead. With {6} scattered everywhere and {7} whole days of freedom, nothing could go wrong!`
+  },
+  july4: {
+    id: 9005,
+    title: "Explosive 4th of July!",
+    themes: ['Holidays','Adventure'],
+    emoji: '🎆',
+    label: "4th of July",
+    words: [
+      {label:'Adjective',hint:'Patriotic or exciting'},
+      {label:'Food',hint:'BBQ food'},
+      {label:'Verb (ending in -ing)',hint:'Celebrate how?'},
+      {label:'Animal',hint:'American animal'},
+      {label:'Place',hint:'Where to watch fireworks'},
+      {label:'Adjective',hint:'Describe fireworks'},
+      {label:'Name',hint:"Someone's name"},
+      {label:'Noun',hint:'Something American'},
+    ],
+    story: `It was a {0} Fourth of July! Everyone gathered around the grill eating {1} and {2} to the music. Suddenly a {3} wearing a tiny flag hat ran through the crowd toward {4}. The fireworks were so {5} that {6} dropped their {7} in pure amazement. Happy birthday, America!`
+  },
+  halloween: {
+    id: 9006,
+    title: "Spooky Halloween Night!",
+    themes: ['Holidays','Mystery'],
+    emoji: '🎃',
+    label: "Halloween",
+    words: [
+      {label:'Adjective',hint:'Scary or spooky'},
+      {label:'Monster',hint:'A scary creature'},
+      {label:'Verb (past tense)',hint:'A creepy action'},
+      {label:'Place',hint:'A haunted location'},
+      {label:'Candy',hint:'Halloween candy'},
+      {label:'Adjective',hint:'Describe the night'},
+      {label:'Costume',hint:'What you dressed as'},
+      {label:'Sound',hint:'A scary sound'},
+    ],
+    story: `On a {0} Halloween night, a {1} {2} across the old graveyard toward {3}. The whole street smelled like {4} and smoke. It was such a {5} evening that even the kid dressed as {6} screamed when they heard the sound of {7} coming from behind the fence!`
+  },
+  christmas: {
+    id: 9007,
+    title: "A Very Gapster Christmas!",
+    themes: ['Holidays','Music'],
+    emoji: '🎄',
+    label: "Christmas",
+    words: [
+      {label:'Adjective',hint:'Describe winter'},
+      {label:'Animal',hint:'An unusual reindeer'},
+      {label:'Verb (past tense)',hint:'What Santa did'},
+      {label:'Gift',hint:'A Christmas present'},
+      {label:'Place',hint:'A Christmas location'},
+      {label:'Adjective',hint:'Describe Santa'},
+      {label:'Food',hint:'Christmas treat'},
+      {label:'Number',hint:'How many elves?'},
+    ],
+    story: `On a {0} Christmas Eve, a {1} named Blinky helped Santa as he {2} down every chimney in town. Under each tree he left {3}, wrapped in glittery paper from {4}. The {5} Santa laughed his famous laugh, ate every last {6}, and flew back to the North Pole with {7} very tired elves!`
+  },
+  newyears: {
+    id: 9008,
+    title: "Happy New Year Chaos!",
+    themes: ['Holidays','Music'],
+    emoji: '🎉',
+    label: "New Year's",
+    words: [
+      {label:'Adjective',hint:'Describe the new year'},
+      {label:'Verb',hint:'Your resolution'},
+      {label:'Place',hint:'Where you celebrate'},
+      {label:'Food',hint:'Party snack'},
+      {label:'Celebrity',hint:'Famous person'},
+      {label:'Number',hint:'How many seconds till midnight?'},
+      {label:'Adjective',hint:'Describe the party'},
+      {label:'Noun (plural)',hint:'Things at the party'},
+    ],
+    story: `As the clock approached midnight on a {0} New Year's Eve, everyone at {2} started to {1} as loud as possible. The table was covered in {3} and {4} showed up fashionably late with {5} seconds to spare. The {6} party ended with {7} flying through the air and everyone hugging strangers!`
+  },
+  valentines: {
+    id: 9009,
+    title: "Valentine's Day Disaster!",
+    themes: ['Holidays'],
+    emoji: '💝',
+    label: "Valentine's Day",
+    words: [
+      {label:'Adjective',hint:'Romantic or silly'},
+      {label:'Animal',hint:'A romantic creature'},
+      {label:'Verb (past tense)',hint:'A loving action'},
+      {label:'Place',hint:'A romantic spot'},
+      {label:'Food',hint:'Valentine candy'},
+      {label:'Adjective',hint:'Describe love'},
+      {label:'Gift',hint:'A Valentine gift'},
+      {label:'Name',hint:"Your crush's name"},
+    ],
+    story: `It was a {0} Valentine's Day when a {1} {2} into the most {5} restaurant in {3}, carrying an armful of {6} for {8}. The waiter brought out a plate of {4} shaped like hearts. Love is {5}, messy, and occasionally involves a {1} stealing your chocolate!`
+  },
+};
+
+// Returns the active event for today (or null)
+function getActiveEvent() {
+  const now = new Date();
+  const month = now.getMonth() + 1; // 1-12
+  const day = now.getDate();
+  // Each event: [month, day] center, ±3 days before, ±2 days after
+  const events = [
+    { key:'anniversary',  month:2,  day:23 },
+    { key:'valentines',   month:2,  day:14 },
+    { key:'stpatricks',   month:3,  day:17 },
+    { key:'easter',       month:4,  day:20 }, // approximate, close enough
+    { key:'schoolsout',   month:6,  day:1  },
+    { key:'july4',        month:7,  day:4  },
+    { key:'halloween',    month:10, day:31 },
+    { key:'christmas',    month:12, day:25 },
+    { key:'newyears',     month:1,  day:1  },
+  ];
+  for(const ev of events) {
+    const evDate = new Date(now.getFullYear(), ev.month-1, ev.day);
+    // Handle New Year's: also check Dec 29-31
+    if(ev.key==='newyears') {
+      const dec29 = new Date(now.getFullYear()-1, 11, 29);
+      const jan2  = new Date(now.getFullYear(), 0, 2);
+      if(now >= dec29 && now <= jan2) return EVENT_MAD_LIBS[ev.key];
+    }
+    const diff = Math.floor((now - evDate) / (1000*60*60*24));
+    if(diff >= -3 && diff <= 2) return EVENT_MAD_LIBS[ev.key];
+  }
+  return null;
+}
+
+let _eventML = null;
+let _eventPopupShown = false;
+
+function initEventPopup() {
+  _eventML = getActiveEvent();
+  if(!_eventML || _eventPopupShown) return;
+  // Only show once per session
+  const sessionKey = 'event_popup_' + _eventML.id;
+  if(sessionStorage.getItem(sessionKey)) return;
+  sessionStorage.setItem(sessionKey, '1');
+  _eventPopupShown = true;
+  setTimeout(() => {
+    const el = document.getElementById('eventPopup');
+    if(!el) return;
+    el.innerHTML = `${_eventML.emoji} <strong>${_eventML.label} Special!</strong> — Play the event story! <button onclick="startEventML()" style="background:#fff;color:var(--primary);border:2px solid var(--primary);border-radius:20px;padding:4px 14px;font-weight:800;font-size:.85rem;cursor:pointer;margin-left:8px">Play →</button> <button onclick="closeEventPopup()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;margin-left:6px;color:rgba(255,255,255,.7)">✕</button>`;
+    el.classList.add('show');
+  }, 2000);
+}
+
+function closeEventPopup() {
+  document.getElementById('eventPopup').classList.remove('show');
+}
+
+function startEventML() {
+  if(!_eventML) return;
+  closeEventPopup();
+  currentML = Object.assign({}, _eventML);
+  currentML._isEvent = true;
+  currentML._isDaily = false;
+  currentAnswers = {};
+  selectedRating = 0;
+  fillBackScreen = 'screenDaily';
+  buildFillScreen();
+  showScreen('screenFill');
+}
+
 // ===================== SUPABASE =====================
 const SUPABASE_URL = 'https://jmqphaoouagnmiwpuabr.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptcXBoYW9vdWFnbm1pd3B1YWJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4ODk5MTksImV4cCI6MjA4NzQ2NTkxOX0.0lSeox5X2uaycyKD77HahEmgLGEv1AEH2y7CGvGS4AQ';
@@ -1343,11 +1583,33 @@ const NORMAL_BADGES = [
   { id:'streak200', icon:'🚀', name:'Legendary',       desc:'200 day streak',                  check: (p) => p.bestStreak >= 200 },
   { id:'streak365', icon:'👑', name:'Year of Laughs',  desc:'365 day streak',                  check: (p) => p.bestStreak >= 365 },
 ];
+const AGE_BADGES = [
+  { id:'age7',   icon:'🌱', name:'One Week In',    desc:'Account is 7 days old',    check: (p) => p.accountAgeDays >= 7 },
+  { id:'age28',  icon:'🌿', name:'One Month In',   desc:'Account is 28 days old',   check: (p) => p.accountAgeDays >= 28 },
+  { id:'age50',  icon:'🌳', name:'50 Days Strong', desc:'Account is 50 days old',   check: (p) => p.accountAgeDays >= 50 },
+  { id:'age100', icon:'💯', name:'100 Day Vet',    desc:'Account is 100 days old',  check: (p) => p.accountAgeDays >= 100 },
+  { id:'age250', icon:'🏛️', name:'250 Day Legend', desc:'Account is 250 days old',  check: (p) => p.accountAgeDays >= 250 },
+  { id:'age365', icon:'🎂', name:'1 Year Gapster', desc:'Account is 1 year old',    check: (p) => p.accountAgeDays >= 365 },
+  { id:'age730', icon:'🎖️', name:'2 Year Veteran', desc:'Account is 2 years old',   check: (p) => p.accountAgeDays >= 730 },
+  { id:'age1095',icon:'🏆', name:'3 Year Legend',  desc:'Account is 3 years old',   check: (p) => p.accountAgeDays >= 1095 },
+  { id:'age1825',icon:'👑', name:'5 Year Icon',    desc:'Account is 5 years old',   check: (p) => p.accountAgeDays >= 1825 },
+];
+const EVENT_BADGES = [
+  { id:'ev_anniversary', icon:'🎂', name:'Birthday Player',    desc:'Played the Gapster Anniversary story',  check: (p) => p.eventPlayed?.includes('9001') },
+  { id:'ev_valentines',  icon:'💝', name:'Hopeless Romantic',  desc:"Played the Valentine's Day story",       check: (p) => p.eventPlayed?.includes('9009') },
+  { id:'ev_stpatricks',  icon:'☘️', name:'Lucky One',          desc:"Played the St. Patrick's Day story",    check: (p) => p.eventPlayed?.includes('9002') },
+  { id:'ev_easter',      icon:'🐣', name:'Egg Hunter',         desc:'Played the Easter story',               check: (p) => p.eventPlayed?.includes('9003') },
+  { id:'ev_schoolsout',  icon:'🏖️', name:'Summer Starter',     desc:"Played the School's Out story",         check: (p) => p.eventPlayed?.includes('9004') },
+  { id:'ev_july4',       icon:'🎆', name:'Patriot',            desc:'Played the 4th of July story',          check: (p) => p.eventPlayed?.includes('9005') },
+  { id:'ev_halloween',   icon:'🎃', name:'Trick or Texter',    desc:'Played the Halloween story',            check: (p) => p.eventPlayed?.includes('9006') },
+  { id:'ev_christmas',   icon:'🎄', name:'Ho Ho Ho',           desc:'Played the Christmas story',            check: (p) => p.eventPlayed?.includes('9007') },
+  { id:'ev_newyears',    icon:'🎉', name:'Party Starter',      desc:"Played the New Year's story",           check: (p) => p.eventPlayed?.includes('9008') },
+];
 const SPECIAL_BADGES = [
   { id:'og',  icon:'👑', name:'OG',        desc:'One of the first 50 accounts',  check: (p) => p.is_og },
   { id:'mod', icon:'🛡️', name:'Moderator', desc:'Appointed Gapster mod',  check: (p) => p.is_mod },
 ];
-const ALL_BADGES = [...NORMAL_BADGES, ...SPECIAL_BADGES];
+const ALL_BADGES = [...NORMAL_BADGES, ...AGE_BADGES, ...EVENT_BADGES, ...SPECIAL_BADGES];
 
 let _prevEarnedBadgeIds = new Set();
 let _handlingSession = false;
@@ -1356,11 +1618,19 @@ function checkAndNotifyBadges() {
   if (!isPro() || !proStateCache) return;
   const ps = proStateCache;
   const { data: ogList } = { data: null }; // will check async below
+  const joinedAt = currentProfile?.joined_at ? new Date(currentProfile.joined_at) : new Date();
+  const accountAgeDays = Math.floor((new Date() - joinedAt) / (1000*60*60*24));
+  // Collect all event IDs played from localStorage
+  const eventPlayed = Object.keys(localStorage)
+    .filter(k => k.startsWith('event_played_'))
+    .map(k => k.replace('event_played_',''));
   const profileData = {
     played: ps.totalPlays || ps.played.length,
     uniquePlayed: ps.played.length,
     is_og: currentProfile?.is_og || false,
-    is_mod: currentProfile?.is_mod || false
+    is_mod: currentProfile?.is_mod || false,
+    accountAgeDays,
+    eventPlayed,
   };
   const nowEarned = new Set(ALL_BADGES.filter(b => b.check(profileData)).map(b => b.id));
   // Find newly earned
@@ -1384,6 +1654,11 @@ function showBadgeNotif(badge) {
 
 function getEarnedBadges(profileData) {
   return ALL_BADGES.filter(b => b.check(profileData));
+}
+
+function checkEventBadges() {
+  // Called after playing an event story — trigger badge check
+  if(isPro()) checkAndNotifyBadges();
 }
 
 // ===================== AUTH =====================
@@ -1908,7 +2183,17 @@ function revealStory() {
   // daily: markDailyPlayed() called in afterStory with await
   showScreen('screenStory');
 }
-async function afterStory() { if(currentML?._isDaily){ await markDailyPlayed(); showScreen('screenDaily'); return; } isPro()?showScreen('screenRating'):showScreen('screenHome'); }
+async function afterStory() {
+  if(currentML?._isEvent) {
+    // Mark event as played
+    localStorage.setItem('event_played_' + currentML.id, '1');
+    // Check event badges
+    checkEventBadges();
+    showScreen('screenDaily'); return;
+  }
+  if(currentML?._isDaily){ await markDailyPlayed(); showScreen('screenDaily'); return; }
+  isPro()?showScreen('screenRating'):showScreen('screenHome');
+}
 
 
 
@@ -2475,7 +2760,12 @@ async function viewProfileData(profile, backScreen){
   const isOwn=currentUser&&currentUser.email===profile.email;
   if(isOwn) await checkStreakOnLogin(); // ensure streak is accurate before displaying
   const ps=isOwn?loadProState():null;
-  const profileForBadges={played, uniquePlayed: proStateCache?.played?.length || played, is_og:isOg, is_mod:profile.is_mod||false, bestStreak: isOwn?(proStateCache?.bestStreak||0):0};
+  const profileJoinedAt = profile.joined_at ? new Date(profile.joined_at) : new Date();
+  const profileAgeDays = Math.floor((new Date() - profileJoinedAt) / (1000*60*60*24));
+  const profileEventPlayed = isOwn
+    ? Object.keys(localStorage).filter(k=>k.startsWith('event_played_')).map(k=>k.replace('event_played_',''))
+    : [];
+  const profileForBadges={played, uniquePlayed: proStateCache?.played?.length || played, is_og:isOg, is_mod:profile.is_mod||false, bestStreak: isOwn?(proStateCache?.bestStreak||0):0, accountAgeDays:profileAgeDays, eventPlayed:profileEventPlayed};
   const earnedBadges=getEarnedBadges(profileForBadges);
   const earnedIds=new Set(earnedBadges.map(b=>b.id));
 
@@ -3089,7 +3379,18 @@ function buildDailyScreen() {
       <div style="font-size:2rem;margin-bottom:8px">📅</div>
       <div style="font-weight:800;font-size:1rem;margin-bottom:6px">A New Story Every Day</div>
       <div style="color:#888;font-size:.85rem">Daily stories rotate through 20 unique stories. Come back tomorrow for a new one!</div>
-    </div>`;
+    </div>
+    ${_eventML ? `
+    <div style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);border:3px solid #ff9800;border-radius:20px;padding:22px;text-align:center;box-shadow:3px 3px 0 #e65100;margin-top:16px">
+      <div style="font-size:2.5rem;margin-bottom:6px">${_eventML.emoji}</div>
+      <div style="font-family:'Boogaloo',cursive;font-size:1.5rem;margin-bottom:6px">${escHtml(_eventML.label)} Special!</div>
+      <div style="color:#888;font-size:.85rem;margin-bottom:14px">A special story just for the occasion — only available for a few days!</div>
+      ${localStorage.getItem('event_played_' + _eventML.id)
+        ? `<div style="background:#e8f5e9;border:2px solid #81c784;border-radius:12px;padding:10px;margin-bottom:12px;font-weight:700;color:#2e7d32;font-size:.9rem">✅ You played this one!</div>
+           <button class="btn btn-outline btn-sm" onclick="startEventML()">Play Again</button>`
+        : `<button class="btn btn-primary" style="background:#ff9800;border-color:#e65100;width:100%" onclick="startEventML()">🎉 Play Event Story!</button>`
+      }
+    </div>` : ''}`;
 }
 
 function startDailyML() {
@@ -3609,9 +3910,18 @@ async function buildInboxScreen() {
 
 async function markAllNotifsRead() {
   if(!currentUser) return;
-  await sb.from('notifications').update({read:true}).eq('email',currentUser.email);
+  try { await sb.from('notifications').update({read:true}).eq('email',currentUser.email); } catch(e) { console.log(e); }
   updateNotifBell();
   buildInboxScreen();
+}
+
+async function clearAllNotifs() {
+  if(!currentUser) return;
+  if(!confirm('Delete all notifications?')) return;
+  try { await sb.from('notifications').delete().eq('email',currentUser.email); } catch(e) { console.log(e); toast('Could not clear. Check RLS policies.'); return; }
+  updateNotifBell();
+  buildInboxScreen();
+  toast('🗑️ Inbox cleared.');
 }
 
 // ===================== NEW ACCOUNT POPUP =====================
@@ -3741,11 +4051,92 @@ async function deleteBot(email) {
 // ===================== INBOX: SHOWSCREEN HOOK =====================
 // Handled in showScreen below via existing id===screenInbox check
 
+// ===================== BADGE VIEWER =====================
+async function openBadgeViewer(email) {
+  // Build profileData for this email
+  let profileForViewer = null;
+  // Try to get from current context
+  if(currentUser && currentUser.email === email && proStateCache) {
+    const joinedAt = currentProfile?.joined_at ? new Date(currentProfile.joined_at) : new Date();
+    const ageDays = Math.floor((new Date() - joinedAt) / (1000*60*60*24));
+    const eventPlayed = Object.keys(localStorage).filter(k=>k.startsWith('event_played_')).map(k=>k.replace('event_played_',''));
+    profileForViewer = {
+      played: proStateCache.totalPlays || proStateCache.played.length,
+      uniquePlayed: proStateCache.played.length,
+      bestStreak: proStateCache.bestStreak || 0,
+      is_og: currentProfile?.is_og || false,
+      is_mod: currentProfile?.is_mod || false,
+      accountAgeDays: ageDays,
+      eventPlayed,
+    };
+  } else {
+    // Fetch basic data for other profiles
+    const {data:prof} = await sb.from('profiles').select('*').eq('email',email).maybeSingle();
+    const {data:lbData} = await sb.from('leaderboard_played').select('played,best_streak').eq('email',email).maybeSingle();
+    const joinedAt = prof?.joined_at ? new Date(prof.joined_at) : new Date();
+    profileForViewer = {
+      played: lbData?.played || 0,
+      uniquePlayed: 0,
+      bestStreak: lbData?.best_streak || 0,
+      is_og: prof?.is_og || false,
+      is_mod: prof?.is_mod || false,
+      accountAgeDays: Math.floor((new Date() - joinedAt) / (1000*60*60*24)),
+      eventPlayed: [],
+    };
+  }
+
+  const groups = [
+    { label: '🎭 Plays', badges: NORMAL_BADGES },
+    { label: '📅 Account Age', badges: AGE_BADGES },
+    { label: '🎉 Events', badges: EVENT_BADGES },
+    { label: '⭐ Special', badges: SPECIAL_BADGES },
+  ];
+
+  const earnedAll = new Set(getEarnedBadges(profileForViewer).map(b=>b.id));
+  const totalEarned = earnedAll.size;
+  const totalBadges = ALL_BADGES.length;
+
+  let html = `<div style="text-align:center;margin-bottom:18px">
+    <div style="font-size:2rem;font-weight:900;color:var(--primary)">${totalEarned}</div>
+    <div style="color:#888;font-size:.9rem">of ${totalBadges} badges collected</div>
+    <div style="background:#eee;border-radius:20px;height:10px;margin:10px auto;max-width:200px;overflow:hidden">
+      <div style="background:var(--primary);height:100%;width:${Math.round(totalEarned/totalBadges*100)}%;border-radius:20px"></div>
+    </div>
+  </div>`;
+
+  for(const group of groups) {
+    html += `<div style="margin-bottom:18px">
+      <div style="font-weight:900;font-size:1rem;margin-bottom:10px">${group.label}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px">`;
+    for(const b of group.badges) {
+      const earned = earnedAll.has(b.id);
+      html += `<div style="background:${earned?'#fff9e6':'#f5f5f5'};border:2px solid ${earned?'#ffd700':'#ddd'};border-radius:12px;padding:10px 6px;text-align:center;${earned?'box-shadow:2px 2px 0 #e6b800':'opacity:.5'}">
+        <div style="font-size:1.6rem">${b.icon}</div>
+        <div style="font-size:.72rem;font-weight:800;margin-top:4px;line-height:1.2">${escHtml(b.name)}</div>
+        <div style="font-size:.65rem;color:#888;margin-top:3px;line-height:1.2">${escHtml(b.desc)}</div>
+        ${earned ? '<div style="font-size:.65rem;color:#2e7d32;font-weight:700;margin-top:4px">✅ Earned</div>' : '<div style="font-size:.65rem;color:#aaa;margin-top:4px">🔒 Locked</div>'}
+      </div>`;
+    }
+    html += `</div></div>`;
+  }
+
+  document.getElementById('badgeViewerContent').innerHTML = html;
+  const overlay = document.getElementById('badgeViewerOverlay');
+  overlay.style.display = 'flex';
+}
+
+function closeBadgeViewer(e) {
+  if(e && e.target !== document.getElementById('badgeViewerOverlay')) return;
+  document.getElementById('badgeViewerOverlay').style.display = 'none';
+}
+
 // ===================== INIT =====================
 buildStarsRow();
 updateAuthUI();
 updateHome();
 initAuth();
+// Init event popup after short delay
+setTimeout(initEventPopup, 1500);
 </script>
 <!-- ADD BOT MODAL -->
 <div class="modal-overlay hidden" id="addBotModal" onclick="if(event.target===this)closeAddBotModal()">
@@ -3811,5 +4202,16 @@ initAuth();
 </div>
 
 <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "92fdd0c5c8c54f75b2054cd69af325b0"}'></script><!-- End Cloudflare Web Analytics -->
+
+<!-- BADGE VIEWER MODAL -->
+<div id="badgeViewerOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;" onclick="closeBadgeViewer(event)">
+  <div style="background:var(--bg);border:3px solid var(--ink);border-radius:20px;max-width:520px;width:94vw;max-height:80vh;display:flex;flex-direction:column;box-shadow:6px 6px 0 var(--ink);overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px;border-bottom:2px solid var(--ink)">
+      <div style="font-family:'Boogaloo',cursive;font-size:1.4rem">🏅 Badge Collection</div>
+      <button onclick="closeBadgeViewer()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;line-height:1">✕</button>
+    </div>
+    <div id="badgeViewerContent" style="overflow-y:auto;padding:18px;flex:1"></div>
+  </div>
+</div>
 </body>
 </html>
