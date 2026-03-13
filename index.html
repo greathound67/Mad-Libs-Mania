@@ -1627,9 +1627,12 @@ async function checkAndNotifyBadges() {
     } catch(e) {}
   }
   const accountAgeDays = joinedAt ? Math.floor((new Date() - joinedAt) / (1000*60*60*24)) : 0;
-  const eventPlayed = Object.keys(localStorage)
-    .filter(k => k.startsWith('event_played_'))
-    .map(k => k.replace('event_played_',''));
+  // Fetch event plays from DB (authoritative), fall back to localStorage
+  let eventPlayed = Object.keys(localStorage).filter(k=>k.startsWith('event_played_')).map(k=>k.replace('event_played_',''));
+  try {
+    const {data:epData} = await sb.from('event_plays').select('event_id').eq('email',currentUser.email);
+    if(epData && epData.length) eventPlayed = [...new Set([...eventPlayed, ...(epData.map(r=>String(r.event_id)))])];
+  } catch(e) {}
   const profileData = {
     played: ps.totalPlays || ps.played.length,
     uniquePlayed: ps.played.length,
@@ -2189,9 +2192,13 @@ function revealStory() {
 }
 async function afterStory() {
   if(currentML?._isEvent) {
-    // Mark event as played
+    // Mark event as played — DB for signed in, localStorage fallback
     localStorage.setItem('event_played_' + currentML.id, '1');
-    // Check event badges
+    if(currentUser) {
+      try {
+        await sb.from('event_plays').upsert({ email: currentUser.email, event_id: currentML.id }, { onConflict: 'email,event_id' });
+      } catch(e) { console.log('event_plays insert error:', e); }
+    }
     checkEventBadges();
     showScreen('screenDaily'); return;
   }
@@ -2733,6 +2740,14 @@ function renderTable(entries,myIdx,getScore){
     }).join('')}</div>`;
 }
 
+async function getEventPlayedForUser(email) {
+  // Returns array of event_id strings for the given user
+  try {
+    const {data} = await sb.from('event_plays').select('event_id').eq('email', email);
+    return (data||[]).map(r => String(r.event_id));
+  } catch(e) { return []; }
+}
+
 async function fetchBadgesForEmails(emails) {
   // Returns map of email -> badges array
   if(!emails.length) return {};
@@ -2757,7 +2772,7 @@ async function fetchBadgesForEmails(emails) {
         is_og: prof.is_og || false,
         is_mod: prof.is_mod || false,
         accountAgeDays: ageDays,
-        eventPlayed: [],
+        eventPlayed: eventPlayMap[row.email]||[],
       };
       badgeMap[email] = getEarnedBadges(pd);
     }
@@ -2799,9 +2814,19 @@ async function viewProfileData(profile, backScreen){
   const ps=isOwn?loadProState():null;
   const profileJoinedAt = profile.joined_at ? new Date(profile.joined_at) : new Date();
   const profileAgeDays = Math.floor((new Date() - profileJoinedAt) / (1000*60*60*24));
-  const profileEventPlayed = isOwn
-    ? Object.keys(localStorage).filter(k=>k.startsWith('event_played_')).map(k=>k.replace('event_played_',''))
-    : [];
+  let profileEventPlayed = [];
+  if(isOwn) {
+    profileEventPlayed = Object.keys(localStorage).filter(k=>k.startsWith('event_played_')).map(k=>k.replace('event_played_',''));
+    try {
+      const {data:epData} = await sb.from('event_plays').select('event_id').eq('email',profile.email);
+      if(epData) profileEventPlayed = [...new Set([...profileEventPlayed,...epData.map(r=>String(r.event_id))])];
+    } catch(e) {}
+  } else {
+    try {
+      const {data:epData} = await sb.from('event_plays').select('event_id').eq('email',profile.email);
+      if(epData) profileEventPlayed = epData.map(r=>String(r.event_id));
+    } catch(e) {}
+  }
   const profileForBadges={played, uniquePlayed: proStateCache?.played?.length || played, is_og:isOg, is_mod:profile.is_mod||false, bestStreak: isOwn?(proStateCache?.bestStreak||0):0, accountAgeDays:profileAgeDays, eventPlayed:profileEventPlayed};
   const earnedBadges=getEarnedBadges(profileForBadges);
   const earnedIds=new Set(earnedBadges.map(b=>b.id));
@@ -3425,7 +3450,7 @@ function buildDailyScreen() {
       <div style="font-size:2.5rem;margin-bottom:6px">${_eventML.emoji}</div>
       <div style="font-family:'Boogaloo',cursive;font-size:1.5rem;margin-bottom:6px">${escHtml(_eventML.label)} Special!</div>
       <div style="color:#888;font-size:.85rem;margin-bottom:14px">A special story just for the occasion — only available for a few days!</div>
-      ${localStorage.getItem('event_played_' + _eventML.id)
+      ${(await (async()=>{ if(!currentUser) return localStorage.getItem('event_played_' + _eventML.id); try{ const {data}=await sb.from('event_plays').select('id').eq('email',currentUser.email).eq('event_id',_eventML.id).maybeSingle(); return data||localStorage.getItem('event_played_'+_eventML.id); }catch(e){return localStorage.getItem('event_played_'+_eventML.id);}})())
         ? `<div style="background:#e8f5e9;border:2px solid #81c784;border-radius:12px;padding:10px;margin-bottom:12px;font-weight:700;color:#2e7d32;font-size:.9rem">✅ You played this one!</div>
            <button class="btn btn-outline btn-sm" onclick="startEventML()">Play Again</button>`
         : `<button class="btn btn-primary" style="background:#ff9800;border-color:#e65100;width:100%" onclick="startEventML()">🎉 Play Event Story!</button>`
@@ -3777,6 +3802,13 @@ async function renderMostBadgesTab(el) {
     // Fetch OG set for is_og check
     const {data:ogEmailRows}=await sb.from('leaderboard_og').select('email').order('joined_at',{ascending:true}).limit(50);
     const ogSet=new Set((ogEmailRows||[]).map(e=>e.email));
+    // Fetch all event plays from DB
+    const {data:allEventPlays}=await sb.from('event_plays').select('email,event_id');
+    const eventPlayMap={};
+    (allEventPlays||[]).forEach(r=>{
+      if(!eventPlayMap[r.email]) eventPlayMap[r.email]=[];
+      eventPlayMap[r.email].push(String(r.event_id));
+    });
     if(emails.length){
       const {data:pdata}=await sb.from('profiles').select('email,is_og,is_mod,joined_at').in('email',emails);
       (pdata||[]).forEach(p=>{profileMap[p.email]=p;});
@@ -4131,7 +4163,11 @@ async function openBadgeViewer(email) {
   if(currentUser && currentUser.email === email && proStateCache) {
     const joinedAt = currentProfile?.joined_at ? new Date(currentProfile.joined_at) : new Date();
     const ageDays = Math.floor((new Date() - joinedAt) / (1000*60*60*24));
-    const eventPlayed = Object.keys(localStorage).filter(k=>k.startsWith('event_played_')).map(k=>k.replace('event_played_',''));
+    let eventPlayed = Object.keys(localStorage).filter(k=>k.startsWith('event_played_')).map(k=>k.replace('event_played_',''));
+    try {
+      const {data:epData} = await sb.from('event_plays').select('event_id').eq('email',email);
+      if(epData) eventPlayed = [...new Set([...eventPlayed,...epData.map(r=>String(r.event_id))])];
+    } catch(e) {}
     profileForViewer = {
       played: proStateCache.totalPlays || proStateCache.played.length,
       uniquePlayed: proStateCache.played.length,
