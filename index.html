@@ -772,7 +772,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     <button class="btn btn-primary" style="width:100%" onclick="saveAvatarChoice()">Save Avatar</button>
   </div>
 </div>
-</div><!-- end #main -->
+<!-- end #main -->
 
 <div class="toast" id="toast"></div>
 <button class="notif-bell" id="notifBell" onclick="showScreen('screenInbox')">🔔<span id="notifBellCount" class="notif-badge hidden">0</span></button>
@@ -1954,7 +1954,7 @@ async function markPlayed(id) {
     await pushProState();
     updatePlayedLeaderboard(proStateCache.totalPlays);
     // Record global play every time
-    sb.from('global_plays').insert({
+    await sb.from('global_plays').insert({
       mad_lib_id: id,
       email: currentUser.email,
       name: currentProfile?.nickname || null,
@@ -2003,7 +2003,7 @@ function showScreen(id) {
   if (id === 'screenRecommended') buildRecommended();
   if (id === 'screenLeaderboard') buildLeaderboard();
   if (id === 'screenPopular') buildPopular();
-  if (id === 'screenDaily') buildDailyScreen();
+  if (id === 'screenDaily') buildDailyScreen().catch(e=>console.log(e));
   if (id === 'screenMod') { document.getElementById('modPanelContent').innerHTML='<div class="lb-loading">Loading... ⏳</div>'; buildModPanel(); }
   if (id === 'screenInbox') { if(currentUser) buildInboxScreen(); else { showScreen('screenHome'); openLoginModal(); } }
   window.scrollTo(0, 0);
@@ -2657,7 +2657,7 @@ async function renderStreakTab(el){
 
 function switchLbStreakType(t){
   activeLbStreakType=t;
-  renderLbTab();
+  renderLbTab().catch(e=>console.log(e));
 }
 
 async function renderMostPlayedTab(el){
@@ -3369,7 +3369,7 @@ async function confirmAutoBan(email, nickname) {
   if (!reason && reason !== '') return; // cancelled
   try {
     await sb.from('bans').upsert({ email, reason: reason || 'Manual ban by mod', banned_at: new Date().toISOString() }, { onConflict: 'email' });
-    toast(`🚫 ${nickname} has been banned.`);
+    toast(`🚫 ${escHtml(nickname)} has been banned.`);
     buildModPanel();
   } catch(e) { console.error(e); toast('Could not ban user.'); }
 }
@@ -3413,7 +3413,7 @@ async function flagMessage(msgId) {
 // ===================== DAILY MAD LIB =====================
 let dailyML = null;
 
-function buildDailyScreen() {
+async function buildDailyScreen() {
   dailyML = getTodaysDailyML();
   const el = document.getElementById('dailyContent');
   // Check if already played today
@@ -4014,7 +4014,7 @@ async function clearAllNotifs() {
   if(!confirm('Delete all notifications?')) return;
   try { await sb.from('notifications').delete().eq('email',currentUser.email); } catch(e) { console.log(e); toast('Could not clear. Check RLS policies.'); return; }
   updateNotifBell();
-  buildInboxScreen();
+  await buildInboxScreen();
   toast('🗑️ Inbox cleared.');
 }
 
