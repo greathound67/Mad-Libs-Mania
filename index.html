@@ -234,7 +234,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 
 
 /* CONTACT DEVELOPER */
-.contact-btn { position:relative; background:var(--card); border:2px solid var(--ink); border-radius:20px; padding:6px 14px; font-size:.82rem; font-weight:800; cursor:pointer; box-shadow:2px 2px 0 var(--ink); z-index:49; transition:all .15s; color:var(--ink); }
+.contact-btn { background:var(--card); border:2px solid var(--ink); border-radius:20px; padding:6px 14px; font-size:.82rem; font-weight:800; cursor:pointer; box-shadow:2px 2px 0 var(--ink); transition:all .15s; color:var(--ink); }
 
 .contact-btn:hover { box-shadow:3px 3px 0 var(--ink); transform:translateY(-1px); }
 .msg-list { display:flex; flex-direction:column; gap:10px; }
@@ -494,7 +494,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .auth-error{background:#f8d7da;color:#842029;border-radius:10px;padding:8px 14px;font-size:.85rem;font-weight:700;}
 
 /* ===== NOTIFICATION INBOX ===== */
-.notif-bell{position:relative;background:var(--card);border:2px solid var(--ink);border-radius:20px;padding:6px 14px;font-size:.82rem;font-weight:800;cursor:pointer;box-shadow:2px 2px 0 var(--ink);z-index:49;transition:all .15s;color:var(--ink);display:none;}
+.notif-bell{background:var(--card);border:2px solid var(--ink);border-radius:20px;padding:6px 14px;font-size:.82rem;font-weight:800;cursor:pointer;box-shadow:2px 2px 0 var(--ink);transition:all .15s;color:var(--ink);display:none;}
 .notif-bell:hover{box-shadow:3px 3px 0 var(--ink);transform:translateY(-1px);}
 
 .notif-badge{display:inline-block;background:var(--primary);color:#fff;border-radius:10px;font-size:.65rem;font-weight:800;padding:1px 6px;margin-left:3px;vertical-align:middle;}
@@ -538,9 +538,12 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
   <button class="btn btn-gold btn-sm" onclick="openNicknameModal()">Complete Setup →</button>
 </div>
 <div class="auth-bar">
-  <button class="mod-btn hidden" id="modBtn" onclick="showScreen('screenMod')">🛡️ Mod Panel</button>
-  <button class="notif-bell" id="notifBell" onclick="showScreen('screenInbox')">🔔<span id="notifBellCount" class="notif-badge hidden">0</span></button>
-  <button class="contact-btn" onclick="openContactModal()" id="contactBtn" style="display:none">✉️ Contact Dev <span id="contactNotifDot" class="notif-dot hidden"></span></button>
+  <!-- Left: corner buttons (bell + contact) -->
+  <div style="display:flex;gap:6px;align-items:center;margin-right:auto">
+    <button class="notif-bell" id="notifBell" onclick="showScreen('screenInbox')">🔔<span id="notifBellCount" class="notif-badge hidden">0</span></button>
+    <button class="contact-btn" onclick="openContactModal()" id="contactBtn" style="display:none">✉️ Contact Dev <span id="contactNotifDot" class="notif-dot hidden"></span></button>
+  </div>
+  <!-- Right: sign in or user chip + mod panel -->
   <div class="sign-in-prompt" id="signInPrompt">
     <span>🔓</span>
     <span>Sign in to unlock all 120 stories, ratings &amp; more</span>
@@ -552,6 +555,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
     <span class="badge-pro">PRO</span>
     <button class="btn-signout" onclick="event.stopPropagation();signOut()">Sign out</button>
   </div>
+  <button class="mod-btn hidden" id="modBtn" onclick="showScreen('screenMod')">🛡️ Mod</button>
 </div>
 
 <div id="main">
@@ -1714,7 +1718,17 @@ const SPECIAL_BADGES = [
 ];
 const ALL_BADGES = [...NORMAL_BADGES, ...AGE_BADGES, ...EVENT_BADGES, ...SPECIAL_BADGES];
 
-let _prevEarnedBadgeIds = new Set();
+// Load previously earned badge IDs from localStorage so we don't re-notify on reload
+function _loadEarnedBadgeIds() {
+  try {
+    const stored = localStorage.getItem('earned_badge_ids');
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  } catch(e) { return new Set(); }
+}
+function _saveEarnedBadgeIds(set) {
+  try { localStorage.setItem('earned_badge_ids', JSON.stringify([...set])); } catch(e) {}
+}
+let _prevEarnedBadgeIds = _loadEarnedBadgeIds();
 let _handlingSession = false;
 
 async function checkAndNotifyBadges() {
@@ -1754,6 +1768,7 @@ async function checkAndNotifyBadges() {
     }
   }
   _prevEarnedBadgeIds = nowEarned;
+  _saveEarnedBadgeIds(nowEarned);
 }
 
 function showBadgeNotif(badge) {
@@ -1769,9 +1784,9 @@ function getEarnedBadges(profileData) {
   return ALL_BADGES.filter(b => b.check(profileData));
 }
 
-function checkEventBadges() {
+async function checkEventBadges() {
   // Called after playing an event story — trigger badge check
-  if(isPro()) checkAndNotifyBadges();
+  if(isPro()) await checkAndNotifyBadges();
 }
 
 // ===================== AUTH =====================
@@ -1906,6 +1921,8 @@ async function signInWithGoogle() {
 }
 
 async function signOut() {
+  localStorage.removeItem('earned_badge_ids');
+  _prevEarnedBadgeIds = new Set();
   await sb.auth.signOut();
   currentUser = null; currentProfile = null; proStateCache = null;
   updateAuthUI(); updateHome();
@@ -2326,7 +2343,7 @@ async function afterStory() {
         await sb.from('event_plays').upsert({ email: currentUser.email, event_id: currentML.id }, { onConflict: 'email,event_id' });
       } catch(e) { console.log('event_plays insert error:', e); }
     }
-    checkEventBadges();
+    await checkEventBadges();
     showScreen('screenDaily'); return;
   }
   if(currentML?._isDaily){ await markDailyPlayed(); showScreen('screenDaily'); return; }
