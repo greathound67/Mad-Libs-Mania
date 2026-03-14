@@ -235,7 +235,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 
 /* CONTACT DEVELOPER */
 .contact-btn { position:fixed; top:112px; right:16px; background:var(--card); border:2px solid var(--ink); border-radius:20px; padding:6px 14px; font-size:.82rem; font-weight:800; cursor:pointer; box-shadow:2px 2px 0 var(--ink); z-index:49; transition:all .15s; color:var(--ink); }
-@media(max-width:500px){ .contact-btn { top:auto; bottom:120px; right:12px; font-size:.75rem; padding:5px 10px; } }
+
 .contact-btn:hover { box-shadow:3px 3px 0 var(--ink); transform:translateY(-1px); }
 .msg-list { display:flex; flex-direction:column; gap:10px; }
 .msg-item { background:var(--card); border:2px solid #e0e0e0; border-radius:14px; padding:14px; cursor:pointer; transition:all .15s; }
@@ -371,12 +371,111 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .badge-notif .bn-sub { font-size:.75rem; color:#888; margin-top:2px; font-weight:600; }
 .toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(100px); background:var(--ink); color:#fff; padding:11px 22px; border-radius:30px; font-weight:700; font-size:.95rem; z-index:200; transition:transform .4s; pointer-events:none !important; white-space:nowrap; }
 
+/* ===== MOBILE: phones ===== */
 @media(max-width:500px){
-  .fill-header,.fill-body,.story-header,.story-body,.rating-card,.home-card{padding:16px}
-  .words-grid{grid-template-columns:1fr 1fr}
-  .btn{font-size:1.1rem;padding:11px 22px}
-  .modal-box{padding:26px 20px}
-  .profile-header{flex-direction:column;text-align:center}
+  /* Layout */
+  #main{padding:0 12px 80px;}
+  header{padding:16px 12px 10px;}
+  header h1{font-size:clamp(2rem,11vw,3rem);}
+  header p{font-size:.82rem;}
+  .auth-bar{padding:0 12px 8px;gap:6px;}
+
+  /* Buttons */
+  .btn{font-size:1rem;padding:10px 20px;border-width:2px;}
+  .btn-sm{font-size:.82rem;padding:6px 12px;}
+
+  /* Home */
+  .home-card{padding:20px 16px;border-radius:16px;}
+  .home-card h2{font-size:1.5rem;}
+  .home-card p{font-size:.9rem;}
+  .stats-row{grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0;}
+  .stat-box .num{font-size:1.6rem;}
+  .home-btns{gap:8px;}
+  .home-btns .btn{width:100%;text-align:center;}
+
+  /* Fill screen */
+  .fill-header{padding:12px 14px;border-radius:14px 14px 0 0;}
+  .fill-header h2{font-size:1.2rem;}
+  .fill-body{padding:14px;}
+  .words-grid{grid-template-columns:1fr;gap:10px;}
+  .word-input-group input{font-size:.95rem;padding:8px 12px;}
+
+  /* Story screen */
+  .story-header{padding:12px 14px;}
+  .story-header h2{font-size:1.2rem;}
+  .story-body{padding:14px;font-size:.95rem;line-height:1.7;}
+  .story-actions{flex-direction:column;align-items:stretch;}
+  .story-actions .btn{width:100%;text-align:center;}
+
+  /* Rating */
+  .rating-card{padding:20px 14px;border-radius:16px;}
+  .rating-card h2{font-size:1.5rem;}
+  .star-btn{font-size:1.7rem;}
+  .rating-actions{flex-direction:column;align-items:stretch;}
+  .rating-actions .btn{width:100%;}
+
+  /* Modal */
+  .modal-box{padding:20px 16px;border-radius:16px;margin:10px;}
+  .modal-overlay{padding:10px;}
+
+  /* Profile */
+  .profile-header{flex-direction:column;text-align:center;gap:10px;}
+  .profile-stats{grid-template-columns:repeat(2,1fr);}
+  .badges-section h3{font-size:1.1rem;}
+  .badges-grid{grid-template-columns:repeat(3,1fr);}
+
+  /* Leaderboard */
+  .lb-table-header,.lb-row{font-size:.82rem;}
+  .lb-name{font-size:.85rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .lb-avatar{font-size:1.3rem;}
+  .lb-score{font-size:.9rem;}
+  .pop-time-tabs{flex-wrap:wrap;gap:4px;}
+  .pop-time-tab{font-size:.78rem;padding:4px 10px;}
+
+  /* Library */
+  .library-grid{grid-template-columns:1fr;}
+  .lib-search-row{flex-direction:column;}
+  .library-search{width:100%;}
+
+  /* Daily */
+  .daily-card{padding:18px 14px;}
+
+  /* Section headers */
+  .section-header{flex-wrap:wrap;gap:6px;}
+  .section-header h2{font-size:1.3rem;}
+
+  /* Notif bell + contact btn */
+  .notif-bell{bottom:80px;right:12px;top:auto;font-size:.75rem;padding:5px 10px;}
+  .contact-btn{bottom:120px;right:12px;top:auto;font-size:.75rem;padding:5px 10px;}
+
+  /* Sign in prompt */
+  .sign-in-prompt{font-size:.78rem;padding:6px 10px;gap:6px;}
+  .sign-in-prompt span{display:none;}
+
+  /* Upsell */
+  .upsell-banner{padding:12px 14px;gap:10px;}
+  .upsell-banner .upsell-text h3{font-size:1.05rem;}
+  .upsell-banner .upsell-actions{margin-left:0;width:100%;}
+  .upsell-banner .upsell-actions .btn{width:100%;}
+
+  /* Mod panel */
+  .mod-user-row{grid-template-columns:1fr;gap:6px;}
+  .mod-actions{display:flex;flex-wrap:wrap;gap:4px;}
+
+  /* Badge viewer */
+  #badgeViewerOverlay > div{width:98vw;max-height:85vh;}
+}
+
+/* ===== TABLET LANDSCAPE (iPad tilted) ===== */
+@media(min-width:501px) and (max-width:1024px){
+  #main{padding:0 20px 60px;}
+  .words-grid{grid-template-columns:repeat(2,1fr);}
+  .home-card{padding:28px 22px;}
+  .library-grid{grid-template-columns:repeat(2,1fr);}
+  .history-grid{grid-template-columns:repeat(2,1fr);}
+  .badges-grid{grid-template-columns:repeat(4,1fr);}
+  .btn{font-size:1.1rem;padding:11px 24px;}
+  .section-header h2{font-size:1.4rem;}
 }
 
 /* ===== NEW ACCOUNT POPUP ===== */
@@ -397,7 +496,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 /* ===== NOTIFICATION INBOX ===== */
 .notif-bell{position:fixed;top:72px;right:16px;background:var(--card);border:2px solid var(--ink);border-radius:20px;padding:6px 14px;font-size:.82rem;font-weight:800;cursor:pointer;box-shadow:2px 2px 0 var(--ink);z-index:49;transition:all .15s;color:var(--ink);display:none;}
 .notif-bell:hover{box-shadow:3px 3px 0 var(--ink);transform:translateY(-1px);}
-@media(max-width:500px){.notif-bell{top:auto;bottom:80px;right:12px;font-size:.75rem;padding:5px 10px;}}
+
 .notif-badge{display:inline-block;background:var(--primary);color:#fff;border-radius:10px;font-size:.65rem;font-weight:800;padding:1px 6px;margin-left:3px;vertical-align:middle;}
 .notif-item{background:var(--card);border:2px solid #e0e0e0;border-radius:14px;padding:14px 16px;margin-bottom:10px;transition:all .15s;}
 .notif-item.unread{border-color:var(--accent);background:#fffde7;}
@@ -1436,31 +1535,35 @@ const EVENT_MAD_LIBS = {
 
 // Returns the active event for today (or null)
 function getActiveEvent() {
+  // Use date-only comparison to avoid timezone/time-of-day issues
   const now = new Date();
-  const month = now.getMonth() + 1; // 1-12
-  const day = now.getDate();
-  // Each event: [month, day] center, ±3 days before, ±2 days after
+  const todayStr = now.toLocaleDateString('en-CA'); // YYYY-MM-DD
+  const year = now.getFullYear();
+
   const events = [
     { key:'anniversary',  month:2,  day:23 },
     { key:'valentines',   month:2,  day:14 },
     { key:'stpatricks',   month:3,  day:17 },
-    { key:'easter',       month:4,  day:20 }, // approximate, close enough
+    { key:'easter',       month:4,  day:20 },
     { key:'schoolsout',   month:6,  day:1  },
     { key:'july4',        month:7,  day:4  },
     { key:'halloween',    month:10, day:31 },
     { key:'christmas',    month:12, day:25 },
     { key:'newyears',     month:1,  day:1  },
   ];
+
   for(const ev of events) {
-    const evDate = new Date(now.getFullYear(), ev.month-1, ev.day);
-    // Handle New Year's: also check Dec 29-31
-    if(ev.key==='newyears') {
-      const dec29 = new Date(now.getFullYear()-1, 11, 29);
-      const jan2  = new Date(now.getFullYear(), 0, 2);
-      if(now >= dec29 && now <= jan2) return EVENT_MAD_LIBS[ev.key];
+    // For New Year's, check both this year and next year's Jan 1
+    const yearsToCheck = ev.key === 'newyears' ? [year, year+1] : [year];
+    for(const y of yearsToCheck) {
+      const evDate = new Date(y, ev.month-1, ev.day);
+      // diff in whole days: negative = before event, positive = after event
+      const todayMidnight = new Date(todayStr);
+      const diffMs = todayMidnight - evDate;
+      const diff = Math.round(diffMs / (1000*60*60*24));
+      // Accessible 3 days before (-3) through 2 days after (+2)
+      if(diff >= -3 && diff <= 2) return EVENT_MAD_LIBS[ev.key];
     }
-    const diff = Math.floor((now - evDate) / (1000*60*60*24));
-    if(diff >= -3 && diff <= 2) return EVENT_MAD_LIBS[ev.key];
   }
   return null;
 }
@@ -2163,7 +2266,10 @@ function waitForReady() {
   });
 }
 
+let _fillStartTime = 0;
+
 function buildFillScreen() {
+  _fillStartTime = Date.now();
   document.getElementById('fillTitle').textContent = currentML.title;
   document.getElementById('fillThemes').innerHTML = currentML.themes.map(themePill).join('');
   document.getElementById('wordsGrid').innerHTML = currentML.words.map((w,i) =>
@@ -2178,6 +2284,24 @@ function updateProgress() { document.getElementById('fillProgress').style.width=
 function handleEnter(e,idx) { if(e.key!=='Enter') return; const ins=document.querySelectorAll('#wordsGrid input'); if(ins[idx+1]) ins[idx+1].focus(); else revealStory(); }
 
 function revealStory() {
+  // Check all blanks are filled
+  const unfilled = currentML.words.filter(w => !currentAnswers[w.key]);
+  if(unfilled.length > 0) {
+    toast('Fill in all ' + unfilled.length + ' blank' + (unfilled.length>1?'s':'') + ' first!');
+    // Highlight unfilled inputs
+    currentML.words.forEach(w => {
+      const el = document.getElementById('inp_' + w.key);
+      if(el) el.style.borderColor = currentAnswers[w.key] ? '' : '#dc3545';
+    });
+    return;
+  }
+  // Check 12-second minimum
+  const elapsed = (Date.now() - _fillStartTime) / 1000;
+  if(elapsed < 12) {
+    const remaining = Math.ceil(12 - elapsed);
+    toast('Take your time! ' + remaining + ' more second' + (remaining>1?'s':'') + '...');
+    return;
+  }
   const defs=['banana','wobbly','sprinted','3','purple','narwhal','loudly','socks','enormous','sparkly'];
   currentML.words.forEach((w,i)=>{ if(!currentAnswers[w.key]) currentAnswers[w.key]=defs[i%defs.length]; });
   document.getElementById('storyTitle').textContent=currentML.title;
