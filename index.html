@@ -234,7 +234,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 
 
 /* CONTACT DEVELOPER */
-.contact-btn { position:fixed; top:112px; right:16px; background:var(--card); border:2px solid var(--ink); border-radius:20px; padding:6px 14px; font-size:.82rem; font-weight:800; cursor:pointer; box-shadow:2px 2px 0 var(--ink); z-index:49; transition:all .15s; color:var(--ink); }
+.contact-btn { position:relative; background:var(--card); border:2px solid var(--ink); border-radius:20px; padding:6px 14px; font-size:.82rem; font-weight:800; cursor:pointer; box-shadow:2px 2px 0 var(--ink); z-index:49; transition:all .15s; color:var(--ink); }
 
 .contact-btn:hover { box-shadow:3px 3px 0 var(--ink); transform:translateY(-1px); }
 .msg-list { display:flex; flex-direction:column; gap:10px; }
@@ -445,8 +445,8 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
   .section-header h2{font-size:1.3rem;}
 
   /* Notif bell + contact btn */
-  .notif-bell{bottom:80px;right:12px;top:auto;font-size:.75rem;padding:5px 10px;}
-  .contact-btn{bottom:120px;right:12px;top:auto;font-size:.75rem;padding:5px 10px;}
+  .notif-bell{font-size:.75rem;padding:5px 10px;}
+  .contact-btn{font-size:.75rem;padding:5px 10px;}
 
   /* Sign in prompt */
   .sign-in-prompt{font-size:.78rem;padding:6px 10px;gap:6px;}
@@ -494,7 +494,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 .auth-error{background:#f8d7da;color:#842029;border-radius:10px;padding:8px 14px;font-size:.85rem;font-weight:700;}
 
 /* ===== NOTIFICATION INBOX ===== */
-.notif-bell{position:fixed;top:72px;right:16px;background:var(--card);border:2px solid var(--ink);border-radius:20px;padding:6px 14px;font-size:.82rem;font-weight:800;cursor:pointer;box-shadow:2px 2px 0 var(--ink);z-index:49;transition:all .15s;color:var(--ink);display:none;}
+.notif-bell{position:relative;background:var(--card);border:2px solid var(--ink);border-radius:20px;padding:6px 14px;font-size:.82rem;font-weight:800;cursor:pointer;box-shadow:2px 2px 0 var(--ink);z-index:49;transition:all .15s;color:var(--ink);display:none;}
 .notif-bell:hover{box-shadow:3px 3px 0 var(--ink);transform:translateY(-1px);}
 
 .notif-badge{display:inline-block;background:var(--primary);color:#fff;border-radius:10px;font-size:.65rem;font-weight:800;padding:1px 6px;margin-left:3px;vertical-align:middle;}
@@ -539,6 +539,8 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 </div>
 <div class="auth-bar">
   <button class="mod-btn hidden" id="modBtn" onclick="showScreen('screenMod')">🛡️ Mod Panel</button>
+  <button class="notif-bell" id="notifBell" onclick="showScreen('screenInbox')">🔔<span id="notifBellCount" class="notif-badge hidden">0</span></button>
+  <button class="contact-btn" onclick="openContactModal()" id="contactBtn" style="display:none">✉️ Contact Dev <span id="contactNotifDot" class="notif-dot hidden"></span></button>
   <div class="sign-in-prompt" id="signInPrompt">
     <span>🔓</span>
     <span>Sign in to unlock all 120 stories, ratings &amp; more</span>
@@ -874,8 +876,7 @@ header p { font-size:1rem; color:var(--secondary); font-weight:700; margin-top:6
 <!-- end #main -->
 
 <div class="toast" id="toast"></div>
-<button class="notif-bell" id="notifBell" onclick="showScreen('screenInbox')">🔔<span id="notifBellCount" class="notif-badge hidden">0</span></button>
-<button class="contact-btn" onclick="openContactModal()" id="contactBtn" style="display:none">✉️ Contact Dev <span id="contactNotifDot" class="notif-dot hidden"></span></button>
+
 <div class="new-account-popup" id="newAccountPopup"></div>
 <div class="event-popup" id="eventPopup"></div>
 <div class="badge-notif" id="badgeNotif"><div class="bn-icon" id="badgeNotifIcon">🏅</div><div><div class="bn-text" id="badgeNotifName">Badge Unlocked!</div><div class="bn-sub" id="badgeNotifDesc"></div></div></div>
@@ -1376,16 +1377,16 @@ const EVENT_MAD_LIBS = {
     emoji: '🎂',
     label: "Gapster Anniversary",
     words: [
-      {label:'Adjective',hint:'Describe something exciting'},
-      {label:'Number',hint:'How many?'},
-      {label:'Noun (plural)',hint:'A thing'},
-      {label:'Verb (past tense)',hint:'Something you did'},
-      {label:'Celebrity Name',hint:'Famous person'},
-      {label:'Adjective',hint:'Describe a feeling'},
-      {label:'Food',hint:'Something tasty'},
-      {label:'Place',hint:'Somewhere fun'},
+      {label:'Adjective',ph:'e.g. wild',key:'adj0'},
+      {label:'Number',ph:'e.g. 3',key:'num1'},
+      {label:'Noun (plural)',ph:'e.g. llamas',key:'noun2'},
+      {label:'Verb (past tense)',ph:'e.g. zoomed',key:'verb3'},
+      {label:'Celebrity Name',ph:'e.g. Beyoncé',key:'celeb4'},
+      {label:'Adjective',ph:'e.g. hilarious',key:'adj5'},
+      {label:'Food',ph:'e.g. cake',key:'food6'},
+      {label:'Place',ph:'e.g. the moon',key:'place7'},
     ],
-    story: `Happy {0} birthday to the most {1} word game on the internet! It all started when {4} said "let's make a word game!" and {2} went {3} with excitement. Today we celebrate with {6} and a party at {7}. Thanks for playing!`
+    story: `Happy {adj0} birthday to the most {num1} word game on the internet! It all started when {celeb4} said "let's make a word game!" and {noun2} went {verb3} with excitement. Today we celebrate with {food6} and a party at {place7}. Thanks for playing!`
   },
   stpatricks: {
     id: 9002,
@@ -1394,16 +1395,16 @@ const EVENT_MAD_LIBS = {
     emoji: '☘️',
     label: "St. Patrick's Day",
     words: [
-      {label:'Adjective',hint:'Describe something green'},
-      {label:'Animal',hint:'Any creature'},
-      {label:'Verb (ending in -ing)',hint:'An action'},
-      {label:'Noun (plural)',hint:'Objects'},
-      {label:'Place',hint:'Somewhere in Ireland or not'},
-      {label:'Adjective',hint:'Describe luck'},
-      {label:'Food',hint:'Something you eat'},
-      {label:'Name',hint:"Someone's name"},
+      {label:'Adjective',ph:'e.g. misty',key:'adj0'},
+      {label:'Animal',ph:'e.g. fox',key:'animal1'},
+      {label:'Verb (-ing)',ph:'e.g. skipping',key:'verb2'},
+      {label:'Noun (plural)',ph:'e.g. coins',key:'noun3'},
+      {label:'Place',ph:'e.g. Dublin',key:'place4'},
+      {label:'Adjective',ph:'e.g. legendary',key:'adj5'},
+      {label:'Name',ph:'e.g. Paddy',key:'name6'},
+      {label:'Food',ph:'e.g. stew',key:'food7'},
     ],
-    story: `It was a {0} morning when a {1} was {2} through a field of shamrocks, scattering {3} everywhere! Legend says if you find them all in {4} you'll have {5} luck forever. To celebrate, {6} cooked up a big pot of {7} for the whole town. Top o' the morning!`
+    story: `It was a {adj0} morning when a {animal1} was {verb2} through a field of shamrocks, scattering {noun3} everywhere! Legend says if you find them all in {place4} you'll have {adj5} luck forever. To celebrate, {name6} cooked up a big pot of {food7} for the whole town. Top o' the morning!`
   },
   easter: {
     id: 9003,
@@ -1412,16 +1413,16 @@ const EVENT_MAD_LIBS = {
     emoji: '🐣',
     label: "Easter",
     words: [
-      {label:'Adjective',hint:'Colorful or fun'},
-      {label:'Animal',hint:'A bunny-like creature'},
-      {label:'Verb',hint:'Something you do fast'},
-      {label:'Number',hint:'How many eggs?'},
-      {label:'Place',hint:'Somewhere outdoors'},
-      {label:'Adjective',hint:'Describe the eggs'},
-      {label:'Food',hint:'Easter candy'},
-      {label:'Emotion',hint:'How you feel'},
+      {label:'Adjective',ph:'e.g. fluffy',key:'adj0'},
+      {label:'Animal',ph:'e.g. capybara',key:'animal1'},
+      {label:'Verb',ph:'e.g. waddle',key:'verb2'},
+      {label:'Number',ph:'e.g. 42',key:'num3'},
+      {label:'Place',ph:'e.g. the park',key:'place4'},
+      {label:'Adjective',ph:'e.g. sparkly',key:'adj5'},
+      {label:'Food',ph:'e.g. jelly beans',key:'food6'},
+      {label:'Emotion',ph:'e.g. ecstatic',key:'emotion7'},
     ],
-    story: `The {0} Easter Bunny, who was actually a giant {1}, decided to {2} across town hiding {3} eggs in {4}. Each egg was more {5} than the last, filled with {6} and chocolate. Everyone felt {7} when they found the golden egg at the very end!`
+    story: `The {adj0} Easter Bunny, who was actually a giant {animal1}, decided to {verb2} across town hiding {num3} eggs in {place4}. Each egg was more {adj5} than the last, filled with {food6} and chocolate. Everyone felt {emotion7} when they found the golden egg at the very end!`
   },
   schoolsout: {
     id: 9004,
@@ -1430,16 +1431,16 @@ const EVENT_MAD_LIBS = {
     emoji: '🏖️',
     label: "School's Out",
     words: [
-      {label:'Adjective',hint:'Describe freedom'},
-      {label:'Verb (past tense)',hint:'What you did on the last day'},
-      {label:'Place',hint:'Somewhere fun for summer'},
-      {label:'Food',hint:'Summer snack'},
-      {label:'Celebrity',hint:'Famous person'},
-      {label:'Adjective',hint:'Describe summer'},
-      {label:'Noun (plural)',hint:'Summer things'},
-      {label:'Number',hint:'How many days of summer?'},
+      {label:'Adjective',ph:'e.g. unstoppable',key:'adj0'},
+      {label:'Verb (past tense)',ph:'e.g. bolted',key:'verb1'},
+      {label:'Place',ph:'e.g. the beach',key:'place2'},
+      {label:'Food',ph:'e.g. ice cream',key:'food3'},
+      {label:'Celebrity',ph:'e.g. Taylor Swift',key:'celeb4'},
+      {label:'Adjective',ph:'e.g. epic',key:'adj5'},
+      {label:'Noun (plural)',ph:'e.g. pool floaties',key:'noun6'},
+      {label:'Number',ph:'e.g. 84',key:'num7'},
     ],
-    story: `School was finally out and everyone felt {0}! They {1} out the front door straight toward {2}, carrying nothing but {3}. Even {4} showed up to celebrate the {5} summer ahead. With {6} scattered everywhere and {7} whole days of freedom, nothing could go wrong!`
+    story: `School was finally out and everyone felt {adj0}! They {verb1} out the front door straight toward {place2}, carrying nothing but {food3}. Even {celeb4} showed up to celebrate the {adj5} summer ahead. With {noun6} scattered everywhere and {num7} whole days of freedom, nothing could go wrong!`
   },
   july4: {
     id: 9005,
@@ -1448,16 +1449,16 @@ const EVENT_MAD_LIBS = {
     emoji: '🎆',
     label: "4th of July",
     words: [
-      {label:'Adjective',hint:'Patriotic or exciting'},
-      {label:'Food',hint:'BBQ food'},
-      {label:'Verb (ending in -ing)',hint:'Celebrate how?'},
-      {label:'Animal',hint:'American animal'},
-      {label:'Place',hint:'Where to watch fireworks'},
-      {label:'Adjective',hint:'Describe fireworks'},
-      {label:'Name',hint:"Someone's name"},
-      {label:'Noun',hint:'Something American'},
+      {label:'Adjective',ph:'e.g. explosive',key:'adj0'},
+      {label:'Food',ph:'e.g. hot dogs',key:'food1'},
+      {label:'Verb (-ing)',ph:'e.g. dancing',key:'verb2'},
+      {label:'Animal',ph:'e.g. bald eagle',key:'animal3'},
+      {label:'Place',ph:'e.g. the rooftop',key:'place4'},
+      {label:'Adjective',ph:'e.g. blinding',key:'adj5'},
+      {label:'Name',ph:'e.g. Uncle Sam',key:'name6'},
+      {label:'Noun',ph:'e.g. hot dog',key:'noun7'},
     ],
-    story: `It was a {0} Fourth of July! Everyone gathered around the grill eating {1} and were {2} to the music. Suddenly a {3} wearing a tiny flag hat ran through the crowd toward {4}. The fireworks were so {5} that {6} dropped their {7} in pure amazement. Happy birthday, America!`
+    story: `It was a {adj0} Fourth of July! Everyone gathered around the grill eating {food1} and were {verb2} to the music. Suddenly a {animal3} wearing a tiny flag hat ran through the crowd toward {place4}. The fireworks were so {adj5} that {name6} dropped their {noun7} in pure amazement. Happy birthday, America!`
   },
   halloween: {
     id: 9006,
@@ -1466,16 +1467,16 @@ const EVENT_MAD_LIBS = {
     emoji: '🎃',
     label: "Halloween",
     words: [
-      {label:'Adjective',hint:'Scary or spooky'},
-      {label:'Monster',hint:'A scary creature'},
-      {label:'Verb (past tense)',hint:'A creepy action'},
-      {label:'Place',hint:'A haunted location'},
-      {label:'Candy',hint:'Halloween candy'},
-      {label:'Adjective',hint:'Describe the night'},
-      {label:'Costume',hint:'What you dressed as'},
-      {label:'Sound',hint:'A scary sound'},
+      {label:'Adjective',ph:'e.g. bone-chilling',key:'adj0'},
+      {label:'Monster',ph:'e.g. werewolf',key:'monster1'},
+      {label:'Verb (-ing)',ph:'e.g. lurching',key:'verb2'},
+      {label:'Place',ph:'e.g. the old mansion',key:'place3'},
+      {label:'Candy',ph:'e.g. candy corn',key:'candy4'},
+      {label:'Adjective',ph:'e.g. eerie',key:'adj5'},
+      {label:'Costume',ph:'e.g. a vampire',key:'costume6'},
+      {label:'Sound',ph:'e.g. a shriek',key:'sound7'},
     ],
-    story: `On a {0} Halloween night, a {1} was {2} across the old graveyard toward {3}. The whole street smelled like {4} and smoke. It was such a {5} evening that even the kid dressed as {6} screamed when they heard the sound of {7} coming from behind the fence!`
+    story: `On a {adj0} Halloween night, a {monster1} was {verb2} across the old graveyard toward {place3}. The whole street smelled like {candy4} and smoke. It was such a {adj5} evening that even the kid dressed as {costume6} screamed when they heard the sound of {sound7} coming from behind the fence!`
   },
   christmas: {
     id: 9007,
@@ -1484,16 +1485,16 @@ const EVENT_MAD_LIBS = {
     emoji: '🎄',
     label: "Christmas",
     words: [
-      {label:'Adjective',hint:'Describe winter'},
-      {label:'Animal',hint:'An unusual reindeer'},
-      {label:'Verb (past tense)',hint:'What Santa did'},
-      {label:'Gift',hint:'A Christmas present'},
-      {label:'Place',hint:'A Christmas location'},
-      {label:'Adjective',hint:'Describe Santa'},
-      {label:'Food',hint:'Christmas treat'},
-      {label:'Number',hint:'How many elves?'},
+      {label:'Adjective',ph:'e.g. frosty',key:'adj0'},
+      {label:'Animal',ph:'e.g. narwhal',key:'animal1'},
+      {label:'Verb (-ing)',ph:'e.g. sliding',key:'verb2'},
+      {label:'Gift',ph:'e.g. a kazoo',key:'gift3'},
+      {label:'Place',ph:'e.g. the North Pole',key:'place4'},
+      {label:'Adjective',ph:'e.g. jolly',key:'adj5'},
+      {label:'Food',ph:'e.g. cookies',key:'food6'},
+      {label:'Number',ph:'e.g. 47',key:'num7'},
     ],
-    story: `On a {0} Christmas Eve, a {1} named Blinky helped Santa as he was {2} down every chimney in town. Under each tree he left {3}, wrapped in glittery paper from {4}. The {5} Santa laughed his famous laugh, ate every last {6}, and flew back to the North Pole with {7} very tired elves!`
+    story: `On a {adj0} Christmas Eve, a {animal1} named Blinky helped Santa as he was {verb2} down every chimney in town. Under each tree he left {gift3}, wrapped in glittery paper from {place4}. The {adj5} Santa laughed his famous laugh, ate every last {food6}, and flew back to the North Pole with {num7} very tired elves!`
   },
   newyears: {
     id: 9008,
@@ -1502,16 +1503,16 @@ const EVENT_MAD_LIBS = {
     emoji: '🎉',
     label: "New Year's",
     words: [
-      {label:'Adjective',hint:'Describe the new year'},
-      {label:'Verb',hint:'Your resolution'},
-      {label:'Place',hint:'Where you celebrate'},
-      {label:'Food',hint:'Party snack'},
-      {label:'Celebrity',hint:'Famous person'},
-      {label:'Number',hint:'How many seconds till midnight?'},
-      {label:'Adjective',hint:'Describe the party'},
-      {label:'Noun (plural)',hint:'Things at the party'},
+      {label:'Adjective',ph:'e.g. chaotic',key:'adj0'},
+      {label:'Verb',ph:'e.g. scream',key:'verb1'},
+      {label:'Place',ph:'e.g. Times Square',key:'place2'},
+      {label:'Food',ph:'e.g. confetti cake',key:'food3'},
+      {label:'Celebrity',ph:'e.g. Ryan Seacrest',key:'celeb4'},
+      {label:'Number',ph:'e.g. 10',key:'num5'},
+      {label:'Adjective',ph:'e.g. legendary',key:'adj6'},
+      {label:'Noun (plural)',ph:'e.g. balloons',key:'noun7'},
     ],
-    story: `As the clock approached midnight on a {0} New Year's Eve, everyone at {2} started to {1} as loud as possible. The table was covered in {3} and {4} showed up fashionably late with {5} seconds to spare. The {6} party ended with {7} flying through the air and everyone hugging strangers!`
+    story: `As the clock approached midnight on a {adj0} New Year's Eve, everyone at {place2} started to {verb1} as loud as possible. The table was covered in {food3} and {celeb4} showed up fashionably late with {num5} seconds to spare. The {adj6} party ended with {noun7} flying through the air and everyone hugging strangers!`
   },
   valentines: {
     id: 9009,
@@ -1520,16 +1521,16 @@ const EVENT_MAD_LIBS = {
     emoji: '💝',
     label: "Valentine's Day",
     words: [
-      {label:'Adjective',hint:'Romantic or silly'},
-      {label:'Animal',hint:'A romantic creature'},
-      {label:'Verb (past tense)',hint:'A loving action'},
-      {label:'Place',hint:'A romantic spot'},
-      {label:'Food',hint:'Valentine candy'},
-      {label:'Adjective',hint:'Describe love'},
-      {label:'Gift',hint:'A Valentine gift'},
-      {label:'Name',hint:"Your crush's name"},
+      {label:'Adjective',ph:'e.g. chaotic',key:'adj0'},
+      {label:'Animal',ph:'e.g. flamingo',key:'animal1'},
+      {label:'Verb (past tense)',ph:'e.g. waltzed',key:'verb2'},
+      {label:'Place',ph:'e.g. Paris',key:'place3'},
+      {label:'Food',ph:'e.g. chocolates',key:'food4'},
+      {label:'Adjective',ph:'e.g. swoony',key:'adj5'},
+      {label:'Gift',ph:'e.g. roses',key:'gift6'},
+      {label:'Name',ph:'e.g. Alex',key:'name7'},
     ],
-    story: `It was a {0} Valentine's Day when a {1} {2} into the most {5} restaurant in {3}, carrying an armful of {6} for {7}. The waiter brought out a plate of {4} shaped like hearts. Love is {5}, messy, and occasionally involves a {1} stealing your chocolate!`
+    story: `It was a {adj0} Valentine's Day when a {animal1} {verb2} into the most {adj5} restaurant in {place3}, carrying an armful of {gift6} for {name7}. The waiter brought out a plate of {food4} shaped like hearts. Love is {adj5}, messy, and occasionally involves a {animal1} stealing your chocolate!`
   },
 };
 
@@ -2270,11 +2271,13 @@ let _fillStartTime = 0;
 
 function buildFillScreen() {
   _fillStartTime = Date.now();
+  // Normalize event MLs: copy .story to .template if needed
+  if(currentML.story && !currentML.template) currentML.template = currentML.story;
   document.getElementById('fillTitle').textContent = currentML.title;
   document.getElementById('fillThemes').innerHTML = currentML.themes.map(themePill).join('');
   document.getElementById('wordsGrid').innerHTML = currentML.words.map((w,i) =>
     `<div class="word-input-group"><label>${escHtml(w.label)}</label>
-    <input type="text" id="inp_${w.key}" placeholder="${escHtml(w.ph)}"
+    <input type="text" id="inp_${w.key}" placeholder="${escHtml(w.ph||w.hint||'')}"
       oninput="onWordInput(this,'${w.key}')" onkeydown="handleEnter(event,${i})"></div>`).join('');
   updateProgress();
 }
