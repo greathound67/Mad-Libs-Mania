@@ -5,65 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gallery</title>
     <style>
-        body {
-            background: linear-gradient(135deg, #ff7e5f, #feb47b);
-            margin: 0;
-            font-family: Arial, sans-serif;
+        .gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
         }
-        .container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            padding: 20px;
-        }
-        .card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        .gallery-item {
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
             overflow: hidden;
-            transition: transform 0.2s;
+            width: 200px;
+            text-align: center;
         }
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        .image {
+        .gallery-item img {
             width: 100%;
-            height: 200px;
-            background: url('path-to-image.jpg') no-repeat center center;
-            background-size: cover;
         }
-        .content {
-            padding: 15px;
-        }
-        h3 {
-            margin: 0 0 10px;
+        .caption {
+            padding: 5px;
+            font-size: 14px;
+            color: #333;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <div class="image" style="background-image: url('image1.jpg');"></div>
-            <div class="content">
-                <h3>Image Title 1</h3>
-                <p>Description of image 1.</p>
-            </div>
+    <div class="gallery">
+        <div class="gallery-item">
+            <img src="img1.png" alt="Image 1">
+            <div class="caption">Caption for Image 1</div>
         </div>
-        <div class="card">
-            <div class="image" style="background-image: url('image2.jpg');"></div>
-            <div class="content">
-                <h3>Image Title 2</h3>
-                <p>Description of image 2.</p>
-            </div>
+        <div class="gallery-item">
+            <img src="img2.png" alt="Image 2">
+            <div class="caption">Caption for Image 2</div>
         </div>
-        <div class="card">
-            <div class="image" style="background-image: url('image3.jpg');"></div>
-            <div class="content">
-                <h3>Image Title 3</h3>
-                <p>Description of image 3.</p>
-            </div>
+        <div class="gallery-item">
+            <img src="img3.png" alt="Image 3">
+            <div class="caption">Caption for Image 3</div>
         </div>
-        <!-- Add more cards as needed -->
+        <div class="gallery-item">
+            <img src="img4.png" alt="Image 4">
+            <div class="caption">Caption for Image 4</div>
+        </div>
     </div>
 </body>
 </html>
