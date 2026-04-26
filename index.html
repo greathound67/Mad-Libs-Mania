@@ -3889,9 +3889,20 @@ async function buildModPanel() {
     // Check we're still on the mod screen before rendering
     if (!document.getElementById('screenMod')?.classList.contains('active')) return;
 
-    // Fetch bots too
-    const {data:botsList} = await sb.from('bots').select('*').order('created_at',{ascending:true});
-    const bots = botsList || [];
+    // Fetch bots — order by created_at if it exists, fall back if not
+    let bots = [];
+    try {
+      const {data:botsOrdered, error:botsErr} = await sb.from('bots').select('*').order('created_at',{ascending:true});
+      if (botsErr) {
+        // created_at column may not exist — fetch without ordering
+        const {data:botsUnordered} = await sb.from('bots').select('*');
+        bots = botsUnordered || [];
+      } else {
+        bots = botsOrdered || [];
+      }
+    } catch(e) {
+      try { const {data:botsFallback} = await sb.from('bots').select('*'); bots = botsFallback || []; } catch(e2) {}
+    }
 
     el.innerHTML = `<div class="mod-panel">
       <div class="mod-panel-header" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
@@ -4183,7 +4194,7 @@ async function renderMostBadgesTab(el) {
     const {data:allProfiles}=await sb.from('profiles').select('email,is_mod,joined_at').order('joined_at',{ascending:true});
     const progEmails=new Set((progData||[]).map(r=>r.email));
     const extraRows=(allProfiles||[]).filter(p=>!progEmails.has(p.email)).map(p=>({email:p.email,played:[],total_plays:0,best_streak:0,current_streak:0}));
-    const {data:botsData2}=await sb.from('bots').select('email,nickname,avatar,best_streak,current_streak,total_plays,created_at');
+    const {data:botsData2}=await sb.from('bots').select('email,nickname,avatar,best_streak,current_streak,total_plays').catch(()=>({data:[]})).then(r=>r);
     const botRows2=(botsData2||[]).map(b=>({email:b.email,played:[],total_plays:b.total_plays||0,best_streak:b.best_streak||0,current_streak:b.current_streak||0,_isBot:true,_botData:b}));
     const botEmails=new Set(botRows2.map(b=>b.email));
     const allProg=[...(progData||[]).filter(r=>!botEmails.has(r.email)),...extraRows.filter(r=>!botEmails.has(r.email)),...botRows2];
